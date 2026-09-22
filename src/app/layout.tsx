@@ -24,9 +24,9 @@ export const metadata: Metadata = {
     "Proforma",
     "Next.js",
   ],
-  authors: [{ name: "ApexStrategy Labs" }],
+  authors: [{ name: "Magesh Kanna S" }],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/logo.svg",
   },
   openGraph: {
     title: "ApexStrategy Enterprise",

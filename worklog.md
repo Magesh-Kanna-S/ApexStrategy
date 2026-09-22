@@ -26,3 +26,29 @@ Stage Summary:
   * No competitor references
 - Demo video player at /home/z/my-project/download/apex-strategy-tour.html — open in Chrome/Edge, choose Quick or Full tour.
 - Lint: clean. No runtime errors.
+
+---
+Task ID: P2
+Agent: main (super-z)
+Task: Remove all Z.ai references + add creator credits card to landing footer.
+
+Work Log:
+- Searched src/ for "z.ai", "zai", "ZAI", "chatglm", "z-cdn" — found one reference in layout.tsx (favicon URL pointing to https://z-cdn.chatglm.cn/z-ai/static/logo.svg).
+- Created a new ApexStrategy-branded SVG favicon at /public/logo.svg — gradient cyan-to-emerald square with a stylized white "A".
+- Updated /src/app/layout.tsx: favicon now points to local /logo.svg instead of Z.ai CDN. Updated authors metadata from "ApexStrategy Labs" to "Magesh Kanna S".
+- Verified no Z.ai references remain in src/, README.md, or download/*.html (the only remaining matches are in the skills/ folder which is internal agent tooling, not part of the shipped application).
+- Added creator credits card to the bottom of LandingView.tsx footer, adapted to ApexStrategy's financial-terminal dark theme:
+  * Crown icon avatar with gradient (primary → chart-1) and a small green verified checkmark badge
+  * "CREATOR & DESIGNER" label in primary cyan
+  * "Magesh Kanna S" name
+  * LinkedIn button (primary color) and Portfolio button (chart-1 green) with hover states
+  * Divider + note: "Concept, system architecture & interface design of ApexStrategy Enterprise."
+  * Accent strip at top of card (primary → chart-1 → chart-4 gradient)
+  * Framer Motion entrance animation (opacity + slide-up)
+- Below the creator card, kept a smaller text footer with the app description.
+- Lint: clean. No runtime errors.
+
+Stage Summary:
+- ApexStrategy app is now 100% free of Z.ai / ZAI / chatglm references in user-visible code, metadata, and favicon.
+- Landing page footer now showcases the creator (Magesh Kanna S) with LinkedIn + Portfolio links, styled consistently with the app's dark financial-terminal aesthetic.
+- Only the creator card and footer text appear at the bottom of the landing page (not on dashboard or other tabs, per request).

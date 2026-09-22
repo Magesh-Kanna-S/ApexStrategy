@@ -22,6 +22,9 @@ import {
   Cpu,
   ShieldCheck,
   PlayCircle,
+  Linkedin,
+  Globe,
+  Crown,
 } from "lucide-react";
 import { useGame } from "@/context/GameContext";
 import { Button } from "@/components/ui/button";
@@ -322,10 +325,83 @@ export function LandingView() {
           </motion.div>
         </section>
 
-        {/* ── Footer ── */}
-        <footer className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground">
-          ApexStrategy Enterprise · Client-side simulation engine ·
-          Saves to your browser&apos;s LocalStorage
+        {/* ── Footer with creator credits ── */}
+        <footer className="border-t border-border/40 mt-12">
+          <div className="mx-auto max-w-6xl px-6 py-10">
+            {/* Creator card */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="mx-auto max-w-xl"
+            >
+              <div className="apex-card apex-card-hover relative overflow-hidden p-5 sm:p-6 border-border/60">
+                {/* Accent strip */}
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-chart-1 to-chart-4" />
+
+                <div className="flex items-center gap-4">
+                  {/* Avatar */}
+                  <div className="relative shrink-0">
+                    <div className="grid place-items-center h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-chart-1 text-white shadow-lg shadow-primary/30">
+                      <Crown className="h-6 w-6" />
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-chart-1 border-2 border-background grid place-items-center">
+                      <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12l5 5 9-11" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Main content */}
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+                      Creator &amp; Designer
+                    </span>
+                    <b className="block text-lg font-semibold tracking-tight mt-0.5">
+                      Magesh Kanna S
+                    </b>
+                    <div className="flex flex-wrap gap-2 mt-2.5">
+                      <a
+                        href="https://www.linkedin.com/in/magesh-kanna-s/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary bg-primary/10 border border-primary/30 px-3 py-1.5 rounded-lg hover:bg-primary/20 hover:border-primary/50 transition-colors"
+                      >
+                        <Linkedin className="h-3.5 w-3.5" />
+                        LinkedIn
+                      </a>
+                      <a
+                        href="https://magesh-kanna-s.github.io/portfolio/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-chart-1 bg-chart-1/10 border border-chart-1/30 px-3 py-1.5 rounded-lg hover:bg-chart-1/20 hover:border-chart-1/50 transition-colors"
+                      >
+                        <Globe className="h-3.5 w-3.5" />
+                        Portfolio
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Note */}
+                <div className="mt-4 pt-4 border-t border-border/40 text-xs text-muted-foreground leading-relaxed">
+                  Concept, system architecture &amp; interface design of{" "}
+                  <span className="font-semibold text-foreground">ApexStrategy Enterprise</span>.
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Footer text */}
+            <div className="mt-8 text-center text-xs text-muted-foreground">
+              <p className="mb-1">
+                ApexStrategy Enterprise · Multi-department corporate business simulation
+              </p>
+              <p className="opacity-70">
+                Client-side engine · Saves to your browser&apos;s LocalStorage · No setup required
+              </p>
+            </div>
+          </div>
         </footer>
       </div>
     </div>
