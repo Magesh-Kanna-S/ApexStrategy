@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Email Signature Studio — Guided Tour · My Desktop Tech</title>
+<style>
+/* ══ MY DESKTOP TECH · SIGNATURE STUDIO GUIDED TOUR — player chrome ══
+   Self-contained: the real application is embedded inside the frame
+   (inline srcdoc) — no external files, no CDN, works from file:// or any host. */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#4285F4;--blue-d:#1a73e8;--blue-l:#E8F0FE;
+  --red:#EA4335;--red-d:#c5221f;
+  --green:#34A853;--green-d:#188038;
+  --yellow:#FBBC05;--yellow-d:#8A6100;
+  --ink:#171B21;--ink-2:#1F2328;--ink-3:#27303B;--ink-4:#313C4B;
+  --txt:#E7EAF0;--txt-2:#A7B0BD;--txt-3:#7d8794;
+  --r:12px;--r-s:9px;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;
+}
+html,body{width:100%;height:100%;overflow:hidden;font-family:var(--sans);background:var(--ink);color:var(--txt)}
+#player{width:100vw;height:100vh;display:flex;flex-direction:column}
+
+/* ── top chrome ── */
+#topbar{height:54px;background:var(--ink-2);border-bottom:1px solid #2A323D;display:flex;align-items:center;gap:13px;padding:0 16px;flex-shrink:0;z-index:40}
+#topbar img{width:30px;height:30px;border-radius:8px}
+.brandbox{display:flex;flex-direction:column;line-height:1.15}
+.brandbox b{font-size:13.5px;font-weight:800;letter-spacing:-.2px}
+.brandbox span{font-size:9.5px;color:var(--txt-2);font-weight:600}
+.tour-chip{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:#8ab4f8;background:rgba(66,133,244,.12);border:1px solid rgba(66,133,244,.35);padding:5px 12px;border-radius:20px;white-space:nowrap}
+.rec-dot{width:7px;height:7px;border-radius:50%;background:var(--red);animation:blink 1.4s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.spacer{flex:1}
+.cbtn{height:34px;min-width:34px;border:1px solid #333d4a;background:var(--ink-3);color:var(--txt-2);border-radius:var(--r-s);font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;transition:all .18s;white-space:nowrap}
+.cbtn:hover{color:#fff;border-color:#48586c;background:var(--ink-4)}
+.cbtn svg{width:13px;height:13px;fill:currentColor}
+.cbtn.on{color:#8ab4f8;border-color:rgba(66,133,244,.5);background:rgba(66,133,244,.16)}
+.cbtn.spd{font-family:var(--mono)}
+.clab{font-size:12px}
+
+/* ── stage ── */
+#stage{flex:1;position:relative;background:#0d1117;overflow:hidden}
+#frame{width:100%;height:100%;border:none;background:#fff;display:block;transition:width .5s ease,height .5s ease,border-radius .5s ease,border .5s ease}
+#stageWrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+#stage.mobile #frame{width:400px;height:744px;border:9px solid #05070a;border-radius:36px;box-shadow:0 30px 80px -20px rgba(0,0,0,.75),0 0 0 1px #2c3644}
+#mobileBadge{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:none;background:rgba(23,27,33,.92);border:1px solid #333d4a;color:var(--txt-2);font-family:var(--mono);font-size:9.5px;letter-spacing:1.5px;padding:6px 14px;border-radius:20px;z-index:30;pointer-events:none}
+#stage.mobile #captionBar{max-width:680px;left:50%;transform:translateX(-50%);width:calc(100% - 40px)}
+#stage.mobile #mobileBadge{display:block}
+
+/* ── caption bar (subtitles) ── */
+#captionBar{position:absolute;left:18px;right:18px;bottom:16px;z-index:25;max-width:960px;margin:0 auto;background:linear-gradient(180deg,rgba(13,17,23,.78),rgba(13,17,23,.94));border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:13px 18px;backdrop-filter:blur(8px);box-shadow:0 14px 40px -12px rgba(0,0,0,.6)}
+#capHead{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+#capChip{font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:1.4px;color:var(--yellow);background:rgba(251,188,5,.12);border:1px solid rgba(251,188,5,.4);padding:3px 10px;border-radius:12px;text-transform:uppercase;white-space:nowrap}
+#capTitle{font-size:12.5px;font-weight:800;color:#fff;letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#capText{font-size:14.5px;line-height:1.55;color:#e8ecf3;min-height:44px;font-weight:500}
+#capText .caret{display:inline-block;width:2.5px;height:15px;background:var(--yellow);margin-left:2px;vertical-align:-2px;animation:blink 1s infinite}
+#player.cc-off #captionBar{display:none}
+
+/* ── overlays (intro / outro) ── */
+.ov{position:absolute;inset:0;z-index:60;display:none;align-items:center;justify-content:center;overflow:auto}
+.ov.show{display:flex}
+.splash{background:linear-gradient(135deg,#4285F4 0%,#2f74e3 45%,#34A853 100%)}
+.splash-in{text-align:center;display:flex;flex-direction:column;align-items:center;padding:44px;max-width:760px}
+.splash-in .lg{width:104px;height:104px;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,.42);border-radius:28px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;opacity:0;transform:scale(.4);transition:all .8s cubic-bezier(.34,1.56,.64,1)}
+.splash-in .lg.on{opacity:1;transform:scale(1)}
+.splash-in .lg img{width:64px;height:64px;border-radius:16px}
+.splash-in h1{font-size:42px;font-weight:900;color:#fff;letter-spacing:-1.4px}
+.splash-in .tag{font-size:14.5px;color:rgba(255,255,255,.92);margin-top:9px;font-weight:500;max-width:560px;line-height:1.5}
+.dotrow{display:flex;gap:11px;margin-top:24px}
+.dotrow i{width:13px;height:13px;border-radius:50%;background:rgba(255,255,255,.32);border:2px solid rgba(255,255,255,.55)}
+.dotrow i.on{background:#fff;box-shadow:0 0 13px rgba(255,255,255,.85)}
+.role-strip{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:24px;max-width:640px}
+.role-strip span{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.34);color:#fff;font-size:10.5px;font-weight:700;padding:6px 13px;border-radius:20px}
+.splash-in .foot{margin-top:26px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.75);letter-spacing:1.6px;text-transform:uppercase}
+.outro-card{background:#fff;color:#1F2328;border-radius:24px;box-shadow:0 30px 90px -20px rgba(0,0,0,.5);padding:34px 40px;max-width:560px;width:calc(100% - 40px);text-align:left}
+.outro-card .oc-top{display:flex;align-items:center;gap:16px}
+.outro-card .oc-av{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--green));display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.outro-card .oc-av img{width:36px;height:36px;border-radius:10px}
+.outro-card .oc-k{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#8A93A0}
+.outro-card .oc-n{font-size:19px;font-weight:800;color:#171B21;letter-spacing:-.02em;margin-top:1px}
+.outro-card .oc-s{font-size:11.5px;color:#5B6470;margin-top:3px}
+.oc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:18px}
+.oc-stats div{background:#F4F7FB;border:1px solid #E3E8EF;border-radius:12px;padding:10px 12px;text-align:center}
+.oc-stats b{font-size:16px;font-weight:800;color:#171B21;display:block}
+.oc-stats span{font-size:9px;color:#8A93A0;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+.oc-div{height:1px;background:#EEF2F8;margin:18px 0}
+.oc-links{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.oc-links a{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;color:#1a73e8;background:#E8F0FE;border:1px solid #c5dafc;border-radius:10px;padding:8px 14px;text-decoration:none}
+.oc-links a svg{width:14px;height:14px;fill:#1a73e8}
+.oc-replay{margin-top:18px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.oc-replay .replaytxt{font-family:var(--mono);font-size:9.5px;color:#8A93A0;letter-spacing:1.2px;text-transform:uppercase}
+
+/* ── chapters menu ── */
+#chMenu{position:absolute;top:60px;right:14px;z-index:70;width:330px;max-height:calc(100vh - 190px);overflow:auto;background:var(--ink-2);border:1px solid #333d4a;border-radius:16px;box-shadow:0 26px 70px -14px rgba(0,0,0,.7);display:none;padding:8px}
+#chMenu.show{display:block}
+#chMenu .cmh{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.6px;color:var(--txt-3);text-transform:uppercase;padding:9px 12px 7px}
+.chrow{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:10px;cursor:pointer;transition:background .15s}
+.chrow:hover{background:var(--ink-3)}
+.chrow .cn{flex:1;font-size:12.5px;font-weight:600;color:var(--txt)}
+.chrow .cm{font-family:var(--mono);font-size:9.5px;color:var(--txt-3);white-space:nowrap}
+.chrow.done .cn{color:var(--txt-2)}
+.chrow.done .cm{color:var(--green)}
+.chrow.cur{background:rgba(66,133,244,.16);box-shadow:inset 0 0 0 1px rgba(66,133,244,.45)}
+.chrow .ci{width:17px;text-align:center;flex-shrink:0;color:var(--txt-3)}
+.chrow .ci svg{width:12px;height:12px;fill:currentColor}
+.chrow.done .ci{color:var(--green)}
+.chrow.cur .ci{color:#8ab4f8}
+
+/* ── bottom hud ── */
+#hud{height:58px;background:var(--ink-2);border-top:1px solid #2A323D;display:flex;align-items:center;gap:10px;padding:0 16px;flex-shrink:0;z-index:40}
+.hbtn{width:38px;height:38px;border-radius:var(--r-s);background:var(--ink-3);border:1px solid #333d4a;color:var(--txt-2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0}
+.hbtn:hover{color:#fff;background:var(--ink-4)}
+.hbtn svg{width:15px;height:15px;fill:currentColor}
+.hbtn.main{width:44px;background:var(--blue);border-color:var(--blue);color:#fff}
+.hbtn.main:hover{background:var(--blue-d)}
+.prog{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0}
+.pbarw{height:5px;background:#2A323D;border-radius:5px;overflow:hidden}
+.pbarf{height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:5px;transition:width .6s ease}
+.ctabs{display:flex;gap:4px}
+.ctab{height:5px;border-radius:5px;background:#2A323D;cursor:pointer;flex:1;min-width:16px;transition:background .3s}
+.ctab.done{background:#3d5a80}
+.ctab.cur{background:var(--blue)}
+#hudInfo{font-family:var(--mono);font-size:10px;color:var(--txt-2);letter-spacing:1px;white-space:nowrap;flex-shrink:0}
+#hudInfo b{color:#8ab4f8}
+#hudTimer{font-family:var(--mono);font-size:10px;color:var(--txt-3);white-space:nowrap;flex-shrink:0}
+
+@media(max-width:900px){
+  .brandbox span{display:none}
+  #capText{font-size:12.5px}
+  .tour-chip{display:none}
+  #hudInfo{display:none}
+  .clab{display:none}
+}
+
+/* ── tour picker overlay ── */
+.pick{background:radial-gradient(900px 480px at 12% -10%,#2b4a7a33,transparent 60%),radial-gradient(900px 480px at 88% -10%,#2f6b4f33,transparent 60%),#151A22;z-index:70}
+.pick-in{text-align:center;display:flex;flex-direction:column;align-items:center;padding:40px 28px;max-width:860px;animation:pickIn .5s cubic-bezier(.34,1.3,.64,1)}
+@keyframes pickIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+.pick-in .lg{width:76px;height:76px;background:#232B36;border:2px solid #38455A;border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.pick-in .lg img{width:48px;height:48px;border-radius:12px}
+.pick-in h1{font-size:30px;font-weight:900;color:#F2F5F9;letter-spacing:-1px}
+.pick-sub{font-size:13.5px;color:#B7C1CE;margin:8px 0 26px;max-width:540px;line-height:1.5}
+.pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:760px}
+@media(max-width:820px){.pick-grid{grid-template-columns:1fr}}
+.pickcard{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;background:#1B222C;border:1.5px solid #333E50;border-radius:18px;padding:22px;cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .25s;color:#F2F5F9;font-family:inherit}
+.pickcard:hover{border-color:var(--blue);transform:translateY(-3px);box-shadow:0 18px 40px -18px #4285F466}
+.pickcard .pc-ic{width:44px;height:44px;border-radius:12px;background:#232B36;border:1px solid #38455A;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.pickcard .pc-ic svg{width:24px;height:24px;fill:#8ab4f8}
+.pickcard .pc-t{font-size:17.5px;font-weight:800;letter-spacing:-.3px}
+.pickcard .pc-d{font-size:12.5px;color:#B7C1CE;line-height:1.55}
+.pickcard .pc-meta{font-family:var(--mono);font-size:11px;color:#8B97A7;margin-top:6px}
+.pickcard .pc-meta b{color:#8ab4f8;font-size:12.5px}
+.pick-foot{display:flex;align-items:center;gap:12px;margin-top:30px;padding:10px 18px;background:#1B222C;border:1px solid #333E50;border-radius:14px;color:#B7C1CE;font-size:12.5px}
+.pick-foot b{color:#F2F5F9}
+.pick-foot img{width:34px;height:34px;border-radius:10px;object-fit:cover;border:1.5px solid #38455A}
+/* outro creator row */
+.oc-creator{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.oc-creator img{width:52px;height:52px;border-radius:14px;object-fit:cover;border:2px solid #E3E8EF;box-shadow:0 6px 18px -8px #00000055}
+</style>
+</head>
+<body>
+<div id="player">
+
+  <!-- top chrome -->
+  <div id="topbar">
+    <img id="tbLogo" alt="MDT">
+    <div class="brandbox"><b>My Desktop Tech</b><span>Signature Studio · Guided Tour</span></div>
+    <span class="tour-chip"><span class="rec-dot"></span>APP WALKTHROUGH · V1</span>
+    <span class="spacer"></span>
+    <button class="cbtn" id="btnChapters" title="Jump to chapter"><svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/><circle cx="2" cy="7" r="1.6"/><circle cx="2" cy="12" r="1.6"/><circle cx="2" cy="17" r="1.6"/></svg><span class="clab">Chapters</span></button>
+    <button class="cbtn on" id="btnCC" title="Subtitles on / off"><svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM6.5 12.5h3v1.8h-3v-1.8zm8 0h3v1.8h-3v-1.8zM4 6h16v7.2a4.7 4.7 0 0 0-3-1 4.4 4.4 0 0 0-3.3 1.4 4.4 4.4 0 0 0-2.7-.9 4.7 4.7 0 0 0-3 1H4V6z"/></svg><span class="clab">Subtitles</span></button>
+    <button class="cbtn on" id="btnVoice" title="Voice narration"><svg id="icVoiceOn" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg><svg id="icVoiceOff" viewBox="0 0 24 24" style="display:none"><path d="M3 9v6h4l5 5V4L7 9H3zm18.6 3 2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4-2.1-2.1z"/></svg></button>
+    <button class="cbtn spd" id="btnSpeed" title="Playback speed">1×</button>
+    <button class="cbtn" id="btnRestart" title="Restart tour"><svg viewBox="0 0 24 24"><path d="M12 5V2L7 7l5 5V8a6 6 0 1 1-6 6H4a8 8 0 1 0 8-9z"/></svg></button>
+  </div>
+
+  <!-- stage: the real application, embedded -->
+  <div id="stage">
+    <div id="stageWrap"><iframe id="frame" title="Signature Studio application"></iframe></div>
+    <div id="mobileBadge">MOBILE LAYOUT · 390PX</div>
+
+    <!-- tour picker: 5-minute overview or the full walkthrough -->
+    <div class="ov pick" id="ov-pick">
+      <div class="pick-in">
+        <div class="lg"><img class="lgimg" alt="My Desktop Tech"></div>
+        <h1>Signature Studio · Guided Tour</h1>
+        <div class="pick-sub">The real application plays inside this file. Choose how deep you want to go:</div>
+        <div class="pick-grid">
+          <button class="pickcard" id="btnQuick">
+            <span class="pc-ic"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z"/></svg></span>
+            <span class="pc-t">5-minute overview</span>
+            <span class="pc-d">Every feature of the signature builder — details, toggles, crop, colours, link order, the sixteen designs and the copy — explained fast.</span>
+            <span class="pc-meta"><b id="pickQDur">≈ 5 min</b> · 14 scenes · 9 chapters</span>
+          </button>
+          <button class="pickcard" id="btnFull">
+            <span class="pc-ic"><svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg></span>
+            <span class="pc-t">Full walkthrough</span>
+            <span class="pc-d">Every group, every option and a live photo-and-logo upload with the crop step — the exhaustive tour, ending with a paste-ready signature.</span>
+            <span class="pc-meta"><b id="pickFDur">≈ 20 min</b> · 29 scenes · 12 chapters</span>
+          </button>
+        </div>
+        <div class="pick-foot">
+          <img id="pickAv" alt="Magesh Kanna S">
+          <span>Creator &amp; Designer — <b>Magesh Kanna S</b></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- intro splash -->
+    <div class="ov splash" id="ov-intro">
+      <div class="splash-in">
+        <div class="lg" id="introLg"><img class="lgimg" alt="My Desktop Tech"></div>
+        <h1>Signature Studio</h1>
+        <div class="tag">One builder. Every design. Yours. — a guided walkthrough of the real application.</div>
+        <div class="dotrow"><i id="bl1"></i><i id="bl2"></i><i id="bl3"></i><i id="bl4"></i></div>
+        <div class="role-strip" id="introRoles">
+          <span>16 designs</span><span>On / off toggles</span><span>Crop &amp; upload</span><span>Colour match</span><span>Link order</span><span>Copy &amp; paste</span><span>Dark theme</span>
+        </div>
+        <div class="foot">My Desktop Tech · Signature Studio · <span id="introMode">Guided tour</span> — self-contained demo</div>
+      </div>
+    </div>
+
+    <!-- outro -->
+    <div class="ov" id="ov-out">
+      <div class="outro-card">
+        <div class="oc-top">
+          <div class="oc-av"><img class="lgimg" alt="MDT"></div>
+          <div>
+            <div class="oc-k">My Desktop Tech · Signature Studio</div>
+            <div class="oc-n">One builder. Every design. Yours.</div>
+            <div class="oc-s">Guided tour — the application itself, every option and design.</div>
+          </div>
+        </div>
+        <div class="oc-stats">
+          <div><b>16</b><span>designs</span></div>
+          <div><b>9</b><span>link channels</span></div>
+          <div><b>10</b><span>colour presets</span></div>
+          <div><b>1</b><span>self-contained file</span></div>
+        </div>
+        <div class="oc-div"></div>
+        <div class="oc-creator">
+          <img id="creatorImg" alt="Magesh Kanna S">
+          <div>
+            <div class="oc-k" style="margin-bottom:2px">Creator &amp; Designer</div>
+            <b style="font-size:17px;color:#171B21;">Magesh Kanna S</b>
+          </div>
+        </div>
+        <div class="oc-links">
+          <a href="https://www.linkedin.com/in/magesh-kanna-s/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zm5 0h3.8v1.7h.1c.5-1 1.9-2 3.8-2 4 0 4.7 2.6 4.7 6V21h-4v-5.5c0-1.3-.5-2.5-1.9-2.5-1.4 0-2.2 1.1-2.2 2.6V21H8z"/></svg>LinkedIn</a>
+          <a href="https://magesh-kanna-s.github.io/portfolio/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm7.9 9h-3a15.6 15.6 0 0 0-1.2-5.3 8 8 0 0 1 4.2 5.3zM12 4c1.4 1.6 2.4 4 2.7 7H9.3C9.6 8 10.6 5.6 12 4zM4.1 11a8 8 0 0 1 4.2-5.3A15.6 15.6 0 0 0 7.1 11h-3zm0 2h3a15.6 15.6 0 0 0 1.2 5.3 8 8 0 0 1-4.2-5.3zm7.9 7c-1.4-1.6-2.4-4-2.7-7h5.4c-.3 3-1.3 5.4-2.7 7zm3.7-1.7A15.6 15.6 0 0 0 16.9 13h3a8 8 0 0 1-4.2 5.3z"/></svg>Portfolio</a>
+        </div>
+        <div class="oc-replay">
+          <button class="cbtn" id="btnReplay2" style="background:var(--blue);border-color:var(--blue);color:#fff;padding:0 16px;height:38px"><svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#fff"><path d="M12 5V2L7 7l5 5V8a6 6 0 1 1-6 6H4a8 8 0 1 0 8-9z"/></svg><span style="font-size:12.5px">Replay this tour</span></button>
+          <button class="cbtn" id="btnSwitch" style="padding:0 16px;height:38px"><span style="font-size:12.5px">Switch tour</span></button>
+          <span class="replaytxt" id="replayCnt">Auto-replay in 25s</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- captions (subtitles) -->
+    <div id="captionBar">
+      <div id="capHead"><span id="capChip">TOUR</span><span id="capTitle">—</span></div>
+      <div id="capText"></div>
+    </div>
+
+    <!-- chapters menu -->
+    <div id="chMenu"><div class="cmh">Chapters · jump anywhere</div><div id="chList"></div></div>
+  </div>
+
+  <!-- bottom hud -->
+  <div id="hud">
+    <button class="hbtn" id="btnPrev" title="Previous scene"><svg viewBox="0 0 24 24"><path d="M6 6h2.5v12H6zM20 6l-9.5 6 9.5 6z"/></svg></button>
+    <button class="hbtn main" id="btnPlay" title="Pause / resume"><svg id="icPlay" viewBox="0 0 24 24" style="display:none"><path d="M8 5v14l11-7z"/></svg><svg id="icPause" viewBox="0 0 24 24"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button>
+    <button class="hbtn" id="btnNext" title="Next scene"><svg viewBox="0 0 24 24"><path d="M15.5 6H18v12h-2.5zM4 6l9.5 6L4 18z"/></svg></button>
+    <div class="prog">
+      <div class="pbarw"><div class="pbarf" id="pfill"></div></div>
+      <div class="ctabs" id="ctabs"></div>
+    </div>
+    <div id="hudInfo"><b id="hiChap">—</b> · <span id="hiStop">0 / 0</span></div>
+    <div id="hudTimer">00:00</div>
+  </div>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+const frame = document.getElementById('frame');
+const G = id => document.getElementById(id);
+
+/* ── embedded application — the real Signature Studio, fully inlined ── */
+const APP_HTML = "<!DOCTYPE html>\n<html lang=\"en\" data-theme=\"light\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <meta name=\"color-scheme\" content=\"light dark\">\n  <meta name=\"description\" content=\"Build a professional email signature in minutes — toggle elements on or off, upload and crop your photo and logos with automatic colour matching, reorder your links, then copy into Gmail, Outlook or Apple Mail.\">\n  <title>Email Signature Studio — Build &amp; Copy Your Signature<\/title>\n  <link rel=\"icon\" type=\"image/svg+xml\" href=\"data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%237c3aed'/%3E%3Cstop%20offset='1'%20stop-color='%23d97706'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='url(%23g)'/%3E%3Crect%20x='11'%20y='17'%20width='42'%20height='30'%20rx='5'%20fill='none'%20stroke='%23fff'%20stroke-width='4'/%3E%3Cpath%20d='M13%2023l19%2013%2019-13'%20fill='none'%20stroke='%23fff'%20stroke-width='4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E\">\n<style>\n:root{\n  --bg-primary:#f0f2f7;--bg-secondary:#e8eaf2;--bg-tertiary:#dde0ec;\n  --bg-card:rgba(255,255,255,0.92);--bg-glass:rgba(255,255,255,0.9);\n  --text-primary:#1a1a2e;--text-secondary:#3d405b;--text-muted:#7b7fa6;\n  --accent:#6d28d9;--accent-light:#7c3aed;--accent-glow:rgba(109,40,217,0.18);\n  --accent-secondary:#b45309;--border:rgba(109,40,217,0.14);--border-hover:rgba(109,40,217,0.45);\n  --shadow:0 4px 24px rgba(60,50,120,0.10);--shadow-lg:0 10px 44px rgba(60,50,120,0.15);\n  --nav-bg:rgba(240,242,247,0.96);--tag-bg:rgba(109,40,217,0.10);--tag-text:#5b21b6;\n  --gold:#b45309;--gold-glow:rgba(180,83,9,0.3);\n  --gradient-accent:linear-gradient(135deg,#6d28d9,#b45309);\n  --radius:12px;--radius-lg:18px;--transition:0.3s ease;\n}\n[data-theme=\"dark\"]{\n  --bg-primary:#0b1121;--bg-secondary:#111827;--bg-tertiary:#1e293b;\n  --bg-card:rgba(30,41,59,0.7);--bg-glass:rgba(17,24,39,0.8);\n  --text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#64748b;\n  --accent:#7c3aed;--accent-light:#a78bfa;--accent-glow:rgba(124,58,237,0.3);\n  --accent-secondary:#f59e0b;--border:rgba(148,163,184,0.15);--border-hover:rgba(124,58,237,0.4);\n  --shadow:0 4px 30px rgba(0,0,0,0.3);--shadow-lg:0 10px 50px rgba(0,0,0,0.4);\n  --nav-bg:rgba(11,17,33,0.92);--tag-bg:rgba(124,58,237,0.12);--tag-text:#a78bfa;\n  --gold:#fbbf24;--gold-glow:rgba(251,191,36,0.4);\n}\n*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}\nhtml{scroll-behavior:smooth;scroll-padding-top:70px;}\nbody{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:var(--bg-primary);color:var(--text-primary);line-height:1.65;transition:background-color var(--transition),color var(--transition);}\na{color:var(--accent);text-decoration:none;}\n::selection{background:var(--accent);color:#fff;}\n:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}\n::-webkit-scrollbar{width:7px;height:7px;}\n::-webkit-scrollbar-track{background:var(--bg-secondary);}\n::-webkit-scrollbar-thumb{background:var(--bg-tertiary);border-radius:4px;}\n.container{max-width:1240px;width:100%;margin:0 auto;padding:0 24px;}\nsection{padding:56px 0;position:relative;}\nbutton{font-family:inherit;}\n.sp{flex:1;}\n\n/* NAVBAR */\n.navbar{position:sticky;top:0;z-index:1000;background:var(--nav-bg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--border);}\n.nav-inner{max-width:1240px;margin:0 auto;padding:11px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;}\n.nav-logo{display:flex;align-items:center;gap:11px;font-weight:700;font-size:1.02rem;color:var(--text-primary);}\n.nav-ic{display:inline-flex;width:34px;height:34px;border-radius:9px;overflow:hidden;flex-shrink:0;box-shadow:0 2px 12px var(--accent-glow);}\n.nav-ic svg{display:block;width:100%;height:100%;}\n.nav-logo .accent{color:var(--accent);}\n.theme-toggle{background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--transition);}\n.theme-toggle:hover{border-color:var(--accent);color:var(--accent);transform:rotate(180deg);}\n.theme-toggle svg{width:16px;height:16px;}\n\n/* HERO */\n#hero{padding:64px 0 48px;background:linear-gradient(135deg,var(--bg-primary) 0%,var(--bg-tertiary) 100%);text-align:center;}\n.hero-badge{display:inline-flex;align-items:center;gap:8px;font-size:0.74rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);background:var(--tag-bg);border:1px solid var(--border);border-radius:999px;padding:7px 16px;}\n.hero-badge svg{width:13px;height:13px;}\n#hero h1{font-size:clamp(1.9rem,4.5vw,3rem);font-weight:900;line-height:1.15;margin-bottom:14px;}\n#hero h1 .grad{background:var(--gradient-accent);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}\n#hero p{max-width:760px;margin:0 auto;color:var(--text-secondary);font-size:1.02rem;}\n.hero-stats{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:26px;}\n.hero-stat{display:inline-flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:999px;padding:8px 18px;font-size:0.83rem;font-weight:600;color:var(--text-secondary);}\n.hero-stat svg{width:13px;height:13px;color:var(--accent);}\n.hero-stat b{color:var(--text-primary);}\n.compat-note{max-width:980px;margin:-8px auto 0;background:var(--tag-bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;gap:12px;align-items:flex-start;font-size:0.86rem;color:var(--text-secondary);text-align:left;}\n.compat-note svg{width:15px;height:15px;color:var(--accent);margin-top:3px;flex-shrink:0;}\n\n/* PANEL HEADERS */\n.panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:8px;}\n.panel-head h2{font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:12px;}\n.panel-head .num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:var(--gradient-accent);color:#fff;font-size:0.95rem;font-weight:700;flex-shrink:0;}\n.panel-sub{color:var(--text-secondary);font-size:0.92rem;margin-bottom:22px;}\n\n/* CONFIG PANEL */\n#customize{padding-top:44px;}\n.group-title{display:flex;align-items:center;gap:9px;font-size:0.78rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);margin:26px 0 12px;}\n.group-title svg{width:13px;height:13px;}\n.config-group:first-child .group-title{margin-top:0;}\n.config-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:14px;}\n.config-field label{display:block;font-size:0.72rem;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}\n.config-field input[type=\"text\"],.config-field input[type=\"url\"]{width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;font-size:0.8rem;padding:10px 12px;outline:none;transition:border-color var(--transition),box-shadow var(--transition);}\n.config-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}\n.config-field input:disabled{opacity:0.55;cursor:not-allowed;}\n.field-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;}\n.field-head label{margin-bottom:0;}\n.config-field.dim{opacity:0.55;}\n/* toggle switch */\n.switch{position:relative;display:inline-block;width:38px;height:21px;flex-shrink:0;}\n.switch input{opacity:0;width:0;height:0;position:absolute;}\n.switch .slider{position:absolute;cursor:pointer;inset:0;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:999px;transition:all .25s;}\n.switch .slider::before{content:'';position:absolute;height:15px;width:15px;left:2px;top:2px;background:#fff;border-radius:50%;transition:all .25s;box-shadow:0 1px 4px rgba(0,0,0,0.25);}\n.switch input:checked+.slider{background:var(--accent);border-color:var(--accent);}\n.switch input:checked+.slider::before{transform:translateX(17px);}\n.switch input:focus-visible+.slider{box-shadow:0 0 0 3px var(--accent-glow);}\n/* uploads */\n.upload-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;}\n.btn-upload{display:inline-flex;align-items:center;gap:7px;background:var(--bg-tertiary);border:1px dashed var(--border-hover);color:var(--accent);font-size:0.76rem;font-weight:600;padding:8px 14px;border-radius:9px;cursor:pointer;transition:all .25s;}\n.btn-upload:hover{background:var(--tag-bg);}\n.btn-upload svg{width:12px;height:12px;}\n.up-thumb{display:inline-flex;align-items:center;gap:8px;}\n.up-thumb img{width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid var(--border);display:block;}\n.btn-rem,.btn-recrop{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;font-size:0.72rem;display:inline-flex;align-items:center;justify-content:center;transition:all .25s;}\n.btn-recrop:hover{color:var(--accent);border-color:var(--accent);}\n.btn-rem:hover{color:#dc2626;border-color:#dc2626;}\n.btn-rem svg,.btn-recrop svg{width:12px;height:12px;}\n.up-note{font-size:0.68rem;color:var(--text-muted);margin-top:7px;}\n.swatches{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap;}\n.sw{width:16px;height:16px;border-radius:5px;border:1px solid var(--border);display:inline-block;}\n.sw-label{font-size:0.66rem;color:var(--text-muted);}\n.note-soft{display:flex;gap:10px;align-items:flex-start;margin-top:20px;background:var(--tag-bg);border:1px solid var(--border);border-radius:10px;padding:11px 15px;font-size:0.8rem;color:var(--text-secondary);text-align:left;}\n.note-soft svg{width:14px;height:14px;color:var(--accent);margin-top:3px;flex-shrink:0;}\n.btn-reset{background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-secondary);font-size:0.8rem;font-weight:600;padding:8px 16px;border-radius:999px;cursor:pointer;transition:all var(--transition);}\n.btn-reset:hover{border-color:var(--accent);color:var(--accent);}\n\n/* LINK ORDER ROWS */\n.links-box{display:grid;gap:8px;}\n.link-row{display:grid;grid-template-columns:16px 38px 26px 96px minmax(0,1fr) 26px 26px;gap:8px;align-items:center;background:var(--bg-card);border:1px solid var(--border);border-radius:11px;padding:7px 10px;transition:border-color .2s,box-shadow .2s,opacity .2s;}\n.link-row.dim{opacity:0.55;}\n.link-row.dragging{opacity:0.4;border-style:dashed;}\n.link-row.drop-hint{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow);}\n.lr-handle{cursor:grab;color:var(--text-muted);background:none;border:0;padding:2px;display:flex;align-items:center;justify-content:center;}\n.lr-handle:active{cursor:grabbing;}\n.lr-handle svg{width:12px;height:14px;}\n.lr-ic{display:flex;align-items:center;justify-content:center;}\n.lr-ic img{width:20px;height:20px;display:block;border-radius:5px;}\n.lr-lab{font-size:0.72rem;font-weight:600;color:var(--text-secondary);letter-spacing:0.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}\n.lr-url{width:100%;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;font-size:0.74rem;padding:7px 9px;outline:none;transition:border-color .2s;}\n.lr-url:focus{border-color:var(--accent);}\n.lr-url:disabled{opacity:0.6;}\n.lr-btn{width:26px;height:26px;border-radius:8px;border:1px solid var(--border);background:var(--bg-tertiary);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}\n.lr-btn:hover{color:var(--accent);border-color:var(--accent);}\n.lr-btn svg{width:11px;height:11px;}\n.links-hint{font-size:0.72rem;color:var(--text-muted);margin-top:10px;display:flex;gap:7px;align-items:flex-start;}\n.links-hint svg{width:12px;height:12px;flex-shrink:0;margin-top:2px;color:var(--accent);}\n\n/* COLOUR SCHEME */\n.scheme-box{display:grid;gap:16px;}\n.sw-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-height:26px;}\n.sw-btn{width:30px;height:30px;border-radius:9px;border:2px solid var(--border);cursor:pointer;transition:transform .15s,border-color .15s;padding:0;}\n.sw-btn:hover{transform:scale(1.12);}\n.sw-btn.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}\n.sw-empty{font-size:0.74rem;color:var(--text-muted);}\n.preset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:9px;}\n.preset-chip{display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:7px 10px;cursor:pointer;font-size:0.74rem;font-weight:600;color:var(--text-secondary);transition:all .2s;text-align:left;}\n.preset-chip:hover{border-color:var(--accent);color:var(--accent);}\n.preset-chip.on{border-color:var(--accent);background:var(--tag-bg);color:var(--tag-text);box-shadow:0 0 0 2px var(--accent-glow);}\n.preset-dots{display:inline-flex;flex-shrink:0;}\n.preset-dots i{width:13px;height:13px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,0.12);}\n.preset-dots i+i{margin-left:-4px;}\n.custom-colors{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}\n.cc-pick{display:inline-flex;align-items:center;gap:8px;font-size:0.74rem;font-weight:600;color:var(--text-secondary);}\n.cc-pick input[type=\"color\"]{width:38px;height:30px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card);cursor:pointer;padding:2px;}\n.cc-hex{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:0.68rem;color:var(--text-muted);}\n.scheme-note{font-size:0.72rem;color:var(--text-muted);}\n\n/* SEGMENTED CONTROLS (icon style) */\n.seg{display:inline-flex;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:10px;padding:3px;gap:3px;flex-wrap:wrap;}\n.seg button{border:0;background:transparent;color:var(--text-secondary);font-size:0.74rem;font-weight:600;padding:6px 13px;border-radius:8px;cursor:pointer;transition:all .2s;}\n.seg button.on{background:var(--accent);color:#fff;box-shadow:0 2px 8px var(--accent-glow);}\n.icon-style-row{display:flex;gap:22px;flex-wrap:wrap;align-items:center;}\n.icon-style-row .isl{font-size:0.74rem;font-weight:600;color:var(--text-muted);}\n\n/* SIGNATURE GRID */\n.sig-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(520px,100%),1fr));gap:22px;}\n.sig-card{min-width:0;background:var(--bg-card);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;transition:all var(--transition);display:flex;flex-direction:column;box-shadow:var(--shadow);}\n.sig-card:hover{border-color:var(--border-hover);box-shadow:var(--shadow-lg);transform:translateY(-3px);}\n.sig-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;}\n.sig-title{font-size:1.02rem;font-weight:700;color:var(--text-primary);}\n.sig-desc{font-size:0.78rem;color:var(--text-muted);margin-top:3px;line-height:1.45;}\n.sig-chip{font-size:0.68rem;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:4px 11px;border-radius:999px;white-space:nowrap;flex-shrink:0;background:var(--tag-bg);color:var(--tag-text);border:1px solid var(--border);}\n\n/* PREVIEW — always white like a real email body */\n.sig-preview{min-width:0;background:#ffffff;border:1px solid var(--border);border-radius:10px;padding:26px 22px;overflow-x:auto;flex:1;}\n.sig-preview table{max-width:100%;}\n.sig-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;align-items:center;}\n.btn-copy{display:inline-flex;align-items:center;gap:8px;background:var(--gradient-accent);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-size:0.84rem;font-weight:600;cursor:pointer;transition:all var(--transition);}\n.btn-copy:hover{transform:translateY(-2px);box-shadow:0 8px 22px var(--accent-glow);color:#fff;}\n.btn-copy.copied{background:linear-gradient(135deg,#16a34a,#0d9488);}\n.btn-copy svg{width:13px;height:13px;}\n.btn-ghost{display:inline-flex;align-items:center;gap:7px;background:var(--bg-tertiary);color:var(--text-secondary);border:1px solid var(--border);border-radius:999px;padding:9px 16px;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all var(--transition);}\n.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}\n.btn-ghost svg{width:12px;height:12px;}\n\n/* HOW-TO */\n#howto{background:var(--bg-secondary);}\n.howto-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(265px,1fr));gap:18px;}\n.howto-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;}\n.howto-card h3{font-size:1rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:9px;color:var(--text-primary);}\n.howto-card h3 svg{width:15px;height:15px;color:var(--accent);}\n.howto-card ol,.howto-card ul{padding-left:20px;display:grid;gap:7px;}\n.howto-card li{font-size:0.85rem;color:var(--text-secondary);line-height:1.55;}\n.howto-card li b{color:var(--text-primary);}\n.howto-card.tips{border-style:dashed;}\n\n/* FOOTER + CREATOR CARD + TOAST */\nfooter{background:var(--bg-secondary);border-top:1px solid var(--border);padding:34px 0 24px;text-align:center;}\nfooter p{color:var(--text-muted);font-size:0.82rem;margin-top:20px;}\n.card{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;}\n.glow-y{box-shadow:0 0 0 1px rgba(180,83,9,0.28),0 12px 40px rgba(180,83,9,0.16);}\n.accent-y{border-color:rgba(180,83,9,0.40);}\n.creator-card{max-width:600px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:20px 24px;text-align:left;flex-wrap:wrap;position:relative;overflow:hidden;}\n.creator-card::before{content:'';position:absolute;inset:-40%;background:radial-gradient(circle at 18% 20%,rgba(251,191,36,0.16),transparent 60%);pointer-events:none;}\n.cc-av{flex-shrink:0;position:relative;}\n.cc-av img{width:64px;height:64px;border-radius:16px;border:2px solid var(--gold);object-fit:cover;display:block;}\n.cc-main{flex:1;min-width:200px;position:relative;}\n.cc-k{display:block;font-size:0.66rem;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold);}\n.cc-main b{display:block;font-size:1.12rem;font-weight:800;color:var(--text-primary);margin:2px 0 9px;}\n.cc-links{display:flex;flex-wrap:wrap;gap:9px;}\n.cc-links a{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;font-size:0.76rem;font-weight:600;border:1px solid rgba(180,83,9,0.40);color:var(--gold);background:rgba(180,83,9,0.08);transition:all .25s;}\n.cc-links a:hover{background:var(--gold);color:#fff;}\n[data-theme=\"dark\"] .cc-links a{background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.35);color:var(--gold);}\n[data-theme=\"dark\"] .cc-links a:hover{background:var(--gold);color:#1a1a2e;}\n.cc-links svg{width:14px;height:14px;}\n.cc-note{flex-basis:150px;font-size:0.7rem;color:var(--text-muted);border-left:1px solid var(--border);padding-left:14px;position:relative;}\n.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg-glass);backdrop-filter:blur(14px);border:1px solid var(--border-hover);color:var(--text-primary);padding:12px 22px;border-radius:999px;font-size:0.84rem;font-weight:600;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:all .35s ease;z-index:2000;display:flex;align-items:center;gap:8px;max-width:min(92vw,520px);}\n.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}\n.toast svg{width:15px;height:15px;color:#16a34a;flex-shrink:0;}\n.toast.err svg{color:#dc2626;}\n\n/* CROP MODAL */\n.modal-veil{position:fixed;inset:0;background:rgba(10,12,24,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:3000;padding:18px;}\n.modal-veil.open{display:flex;}\n.crop-card{background:var(--bg-card);border:1px solid var(--border);border-radius:18px;max-width:540px;width:100%;padding:22px;box-shadow:var(--shadow-lg);max-height:94vh;overflow-y:auto;}\n.crop-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px;}\n.crop-head b{font-size:1rem;}\n.crop-sub{font-size:0.76rem;color:var(--text-muted);margin-bottom:12px;}\n.crop-stage{position:relative;width:300px;height:375px;margin:0 auto;overflow:hidden;border-radius:12px;border:1px solid var(--border);background:conic-gradient(#cdd2dd 25%,#f0f2f7 0 50%,#cdd2dd 0 75%,#f0f2f7 0) 0 0/22px 22px;cursor:grab;touch-action:none;}\n.crop-stage:active{cursor:grabbing;}\n.crop-stage img{position:absolute;left:0;top:0;user-select:none;-webkit-user-drag:none;pointer-events:none;max-width:none;}\n.crop-tools{display:flex;align-items:center;gap:12px;justify-content:center;margin-top:16px;}\n.crop-tools input[type=\"range\"]{width:180px;accent-color:var(--accent);}\n.crop-zoom-lab{font-size:0.74rem;font-weight:600;color:var(--text-muted);}\n.crop-zoom-val{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:0.7rem;color:var(--text-muted);width:44px;}\n.aspect-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px;}\n.aspect-chip{background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-secondary);font-size:0.72rem;font-weight:600;padding:6px 13px;border-radius:999px;cursor:pointer;transition:all .2s;}\n.aspect-chip:hover{border-color:var(--accent);color:var(--accent);}\n.aspect-chip.on{background:var(--accent);color:#fff;border-color:var(--accent);}\n.crop-foot{display:flex;align-items:center;gap:10px;margin-top:20px;flex-wrap:wrap;}\n\n/* responsive */\n@media(max-width:1120px){.sig-grid{grid-template-columns:minmax(0,1fr);}}\n@media(max-width:640px){\n  section{padding:40px 0;}\n  .container{padding:0 16px;}\n  .sig-preview{padding:18px 12px;}\n  .sig-card{padding:16px;}\n  .panel-head h2{font-size:1.25rem;}\n  .compat-note{flex-direction:column;}\n  .cc-note{border-left:none;border-top:1px solid var(--border);padding-left:0;padding-top:12px;flex-basis:100%;}\n  .link-row{grid-template-columns:16px 38px 26px minmax(0,1fr) 26px 26px;grid-template-rows:auto auto;}\n  .lr-lab{grid-column:3 / 5;grid-row:1;}\n  .lr-url{grid-column:1 / -1;grid-row:2;}\n  .lr-handle{grid-row:1 / 3;}\n  .crop-stage{width:262px;height:328px;}\n}\n@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important;}}\n<\/style>\n<\/head>\n<body>\n\n<\!-- NAVBAR -->\n<nav class=\"navbar\">\n  <div class=\"nav-inner\">\n    <a href=\"#hero\" class=\"nav-logo\">\n      <span class=\"nav-ic\" aria-hidden=\"true\">\n        <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" role=\"img\" aria-label=\"Email Signature Studio\">\n          <defs>\n            <linearGradient id=\"navg\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">\n              <stop offset=\"0\" stop-color=\"#7c3aed\"/><stop offset=\"1\" stop-color=\"#d97706\"/>\n            <\/linearGradient>\n          <\/defs>\n          <rect width=\"64\" height=\"64\" rx=\"14\" fill=\"url(#navg)\"/>\n          <rect x=\"11\" y=\"17\" width=\"42\" height=\"30\" rx=\"5\" fill=\"none\" stroke=\"#fff\" stroke-width=\"4\"/>\n          <path d=\"M13 23l19 13 19-13\" fill=\"none\" stroke=\"#fff\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n        <\/svg>\n      <\/span>\n      <span>SIGNATURE<span class=\"accent\">.<\/span>STUDIO<\/span>\n    <\/a>\n    <button class=\"theme-toggle\" id=\"theme-toggle\" onclick=\"toggleTheme()\" aria-label=\"Toggle light or dark theme\">\n      <svg id=\"ic-moon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z\"/><\/svg>\n      <svg id=\"ic-sun\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" style=\"display:none\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4\"/><\/svg>\n    <\/button>\n  <\/div>\n<\/nav>\n\n<\!-- HERO -->\n<section id=\"hero\">\n  <div class=\"container\">\n    <div class=\"hero-badge\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"3\"/><path d=\"m3 6 9 7 9-7\"/><\/svg> Email Signature Studio<\/div>\n    <h1>16 Signature Designs.<br><span class=\"grad\">One Unified System.<\/span><\/h1>\n    <p>A general-purpose signature builder — fill in your details once, flip toggles for anything optional, crop and add your photo and logos, pick a colour scheme, and put your links in the exact order you want. Every design re-renders with your images and colours, ready for professional, academic, corporate or personal mail.<\/p>\n    <div class=\"hero-stats\">\n      <div class=\"hero-stat\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/><\/svg> <b>16<\/b>&nbsp;Designs<\/div>\n      <div class=\"hero-stat\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 7h16M4 12h16M4 17h10\"/><\/svg> Elements&nbsp;on&nbsp;/&nbsp;off<\/div>\n      <div class=\"hero-stat\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3v18M3 12h18\"/><\/svg> Colour&nbsp;match&nbsp;from&nbsp;logos<\/div>\n      <div class=\"hero-stat\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 3H6a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2\"/><rect x=\"8\" y=\"1\" width=\"8\" height=\"4\" rx=\"1\"/><\/svg> Copy&nbsp;or&nbsp;text&nbsp;version<\/div>\n    <\/div>\n    <div style=\"height:22px;\"><\/div>\n    <div class=\"compat-note\">\n      <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 8h.01M12 11v5\"/><\/svg>\n      <span><b>Quick start:<\/b> edit your details in Step 1 — every preview updates instantly. Toggle optional elements on or off, crop and upload images, pick a colour scheme and arrange your links. Then hit <b>Copy Signature<\/b> and paste (Ctrl/Cmd&nbsp;+&nbsp;V) into your mail client's signature box — or take the tidy <b>text version<\/b>.<\/span>\n    <\/div>\n  <\/div>\n<\/section>\n\n<\!-- STEP 1: CUSTOMIZE -->\n<section id=\"customize\">\n  <div class=\"container\">\n    <div class=\"panel-head\">\n      <h2><span class=\"num\">1<\/span> Fill Your Details<\/h2>\n      <button class=\"btn-reset\" id=\"reset-btn\" onclick=\"resetConfig()\"><svg viewBox=\"0 0 24 24\" width=\"12\" height=\"12\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"vertical-align:-1px;margin-right:5px\" aria-hidden=\"true\"><path d=\"M3 12a9 9 0 1 0 3-6.7L3 8\"/><path d=\"M3 3v5h5\"/><\/svg>Reset to defaults<\/button>\n    <\/div>\n    <p class=\"panel-sub\">Start from the sample details and make them yours — anything optional has an on/off toggle, and all 16 designs update live.<\/p>\n    <div id=\"config-root\"><\/div>\n    <div class=\"note-soft\">\n      <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"3\"/><circle cx=\"9\" cy=\"9\" r=\"2\"/><path d=\"m21 15-4.4-4.4a1.7 1.7 0 0 0-2.4 0L5 19\"/><\/svg>\n      <span><b>Images are session-only:<\/b> cropped photos and logos apply instantly across every design, and everything returns to the default look after a refresh. Logos also lend their colours to the palette automatically — fine-tune it any time in the Colour scheme group.<\/span>\n    <\/div>\n  <\/div>\n<\/section>\n\n<\!-- STEP 2: GALLERY -->\n<section id=\"gallery\" style=\"background:var(--bg-secondary);\">\n  <div class=\"container\">\n    <div class=\"panel-head\"><h2><span class=\"num\">2<\/span> Browse &amp; Copy<\/h2><\/div>\n    <p class=\"panel-sub\">One unified system — every design adapts to the same details, images and colour scheme, so each works for professional, academic, corporate or personal mail alike. Pick the silhouette you like, then copy it with icons and links intact, or take the tidy text version.<\/p>\n    <div class=\"sig-grid\" id=\"sig-grid\"><\/div>\n  <\/div>\n<\/section>\n\n<\!-- STEP 3: HOW TO USE -->\n<section id=\"howto\">\n  <div class=\"container\">\n    <div class=\"panel-head\"><h2><span class=\"num\">3<\/span> Paste Into Your Mail Client<\/h2><\/div>\n    <p class=\"panel-sub\">Use <b>Copy Signature<\/b> for a one-shot paste — icons, images and their links stay intact. Prefer plain text? The <b>Text version<\/b> button on each card carries the same details with simple links.<\/p>\n    <div class=\"howto-grid\">\n      <div class=\"howto-card\">\n        <h3><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"3\"/><path d=\"m3 6 9 7 9-7\"/><\/svg> Gmail<\/h3>\n        <ol>\n          <li>Click <b>Copy Signature<\/b> on your favourite card.<\/li>\n          <li>Open Gmail → <b>⚙ Settings → See all settings → General → Signature<\/b>.<\/li>\n          <li>Click <b>Create new<\/b>, name it, then <b>Ctrl/Cmd + V<\/b> into the box.<\/li>\n          <li>Scroll down → <b>Save Changes<\/b>. Done.<\/li>\n        <\/ol>\n      <\/div>\n      <div class=\"howto-card\">\n        <h3><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M8 4v3h8V4M7 12h10M7 16h6\"/><\/svg> Outlook<\/h3>\n        <ol>\n          <li>Click <b>Copy Signature<\/b> on your favourite card.<\/li>\n          <li>Open Outlook → <b>Settings → Mail → Compose and reply<\/b>.<\/li>\n          <li>In <b>Email signature<\/b>, click <b>New signature<\/b>, name it, then <b>Ctrl/Cmd + V<\/b>.<\/li>\n          <li><b>Save<\/b>, then select it under <b>Signature for new messages<\/b>.<\/li>\n        <\/ol>\n      <\/div>\n      <div class=\"howto-card\">\n        <h3><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"6\" y=\"2\" width=\"12\" height=\"20\" rx=\"3\"/><path d=\"M11 18h2\"/><\/svg> Apple Mail &amp; Mobile<\/h3>\n        <ol>\n          <li><b>Apple Mail:<\/b> Mail → Settings → Signatures → <b>+<\/b> → paste into the right pane.<\/li>\n          <li><b>Gmail app:<\/b> paste into the signature field via the Gmail web app first, then it syncs.<\/li>\n          <li><b>Mobile:<\/b> signatures over ~4 lines get trimmed visually — try <b>The One-Liner<\/b> or <b>Compact Footer<\/b>.<\/li>\n        <\/ol>\n      <\/div>\n      <div class=\"howto-card tips\">\n        <h3><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.9.7 1.5 1.7 1.5 2.8h4c0-1.1.6-2.1 1.5-2.8A6 6 0 0 0 12 3z\"/><\/svg> Pro Tips<\/h3>\n        <ul>\n          <li>Paste with <b>Ctrl/Cmd + V<\/b> — the icons and their links travel with it.<\/li>\n          <li>Put <b>professional links first<\/b> (portfolio, LinkedIn) — reorder them in Step 1.<\/li>\n          <li>Crop photos to a tidy rectangle before adding — square-ish frames look best.<\/li>\n          <li>Grab the <b>Text version<\/b> for mail apps that prefer plain text.<\/li>\n          <li>Send yourself a test email to confirm everything looks right.<\/li>\n        <\/ul>\n      <\/div>\n    <\/div>\n  <\/div>\n<\/section>\n\n<footer>\n  <div class=\"container\">\n    <div class=\"card glow glow-y accent-y creator-card\">\n      <div class=\"cc-av\"><img src=\"https://avatars.githubusercontent.com/Magesh-Kanna-S\" alt=\"Magesh Kanna S\" onerror=\"this.onerror=null;this.src='data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20viewBox=%270%200%2064%2064%27%3E%3Crect%20width=%2764%27%20height=%2764%27%20rx=%2714%27%20fill=%27%23b45309%27/%3E%3Ctext%20x=%2732%27%20y=%2741%27%20font-family=%27Arial%27%20font-size=%2724%27%20font-weight=%27bold%27%20fill=%27%23fff%27%20text-anchor=%27middle%27%3EMK%3C/text%3E%3C/svg%3E';\"><\/div>\n      <div class=\"cc-main\">\n        <span class=\"cc-k\">Creator &amp; Designer<\/span>\n        <b>Magesh Kanna S<\/b>\n        <div class=\"cc-links\">\n          <a href=\"https://www.linkedin.com/in/magesh-kanna-s/\" target=\"_blank\" rel=\"noopener noreferrer\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M7 10v7M7 6.5v.1M11 17v-4a2.5 2.5 0 015 0v4M11 9.5V17\"><\/path><\/svg>LinkedIn<\/a>\n          <a href=\"https://magesh-kanna-s.github.io/portfolio/\" target=\"_blank\" rel=\"noopener noreferrer\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3a9 9 0 100 18 9 9 0 000-18zM3.5 9h17M3.5 15h17M12 3c2.4 2.5 3.8 5.6 3.8 9s-1.4 6.5-3.8 9c-2.4-2.5-3.8-5.6-3.8-9S9.6 5.5 12 3z\"><\/path><\/svg>Portfolio<\/a>\n        <\/div>\n      <\/div>\n      <div class=\"cc-note\">Concept, design &amp; interface of Signature Studio.<\/div>\n    <\/div>\n    <p>&copy; 2026 Magesh Kanna S · Signature Studio — made for everyone who sends email.<\/p>\n  <\/div>\n<\/footer>\n\n<div class=\"toast\" id=\"toast\" role=\"status\" aria-live=\"polite\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m8.5 12.2 2.4 2.4 4.6-5\"/><\/svg><span id=\"toast-msg\">Copied!<\/span><\/div>\n\n<\!-- CROP MODAL -->\n<div class=\"modal-veil\" id=\"crop-veil\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"crop-title\">\n  <div class=\"crop-card\">\n    <div class=\"crop-head\">\n      <b id=\"crop-title\">Adjust image<\/b>\n      <button class=\"btn-rem\" id=\"crop-close\" aria-label=\"Close crop dialog\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M6 6l12 12M18 6L6 18\"/><\/svg><\/button>\n    <\/div>\n    <div class=\"crop-sub\" id=\"crop-sub\">Drag to position, zoom to fine-tune, pick a shape — then add it to your signature.<\/div>\n    <div class=\"crop-stage\" id=\"crop-stage\"><img id=\"crop-img\" alt=\"\" draggable=\"false\"><\/div>\n    <div class=\"crop-tools\">\n      <span class=\"crop-zoom-lab\">Zoom<\/span>\n      <input type=\"range\" id=\"crop-zoom\" min=\"100\" max=\"800\" value=\"100\" step=\"1\" aria-label=\"Zoom level\">\n      <span class=\"crop-zoom-val\" id=\"crop-zoom-val\">100%<\/span>\n    <\/div>\n    <div class=\"aspect-chips\" id=\"aspect-chips\"><\/div>\n    <div class=\"crop-foot\">\n      <button class=\"btn-ghost\" id=\"crop-original\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 7h16M4 12h16M4 17h10\"/><\/svg>Use as-is<\/button>\n      <span class=\"sp\"><\/span>\n      <button class=\"btn-ghost\" id=\"crop-cancel\">Cancel<\/button>\n      <button class=\"btn-copy\" id=\"crop-apply\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 13l4 4L19 7\"/><\/svg>Add to signature<\/button>\n    <\/div>\n  <\/div>\n<\/div>\n\n<script>\n(function(){\n'use strict';\n\n// ══════════ STATE (session-only — a refresh restores the defaults) ══════════\nconst LINKS=[\n  {key:'portfolio', label:'Portfolio',     ph:'yourportfolio.com'},\n  {key:'linkedin',  label:'LinkedIn',      ph:'linkedin.com/in/…'},\n  {key:'github',    label:'GitHub',        ph:'github.com/…'},\n  {key:'youtube',   label:'YouTube',       ph:'youtube.com/@…'},\n  {key:'instagram', label:'Instagram',     ph:'instagram.com/…'},\n  {key:'x',         label:'X (Twitter)',   ph:'x.com/…'},\n  {key:'facebook',  label:'Facebook',      ph:'facebook.com/…'},\n  {key:'whatsapp',  label:'WhatsApp',      ph:'+91 98765 43210'},\n  {key:'telegram',  label:'Telegram',      ph:'t.me/… or @username'}\n];\nconst LINK_LABEL={}; LINKS.forEach(l=>LINK_LABEL[l.key]=l.label);\n\nconst DEFAULTS={\n  name:'Alex Morgan',\n  caption:'MBA Candidate · Data Analyst',\n  tagline:'Turning complexity into clarity — one idea at a time.',\n  email:'alex.morgan@example.com',\n  phone:'+1 (555) 234-5678',\n  location:'New York, USA',\n  company:'Acme Industries',\n  companyLink:'https://www.acmeindustries.com',\n  college:'State University',\n  collegeLink:'https://www.stateuniversity.edu',\n  links:{\n    portfolio:'https://www.alexmorgan.com',\n    linkedin:'https://www.linkedin.com/in/alex-morgan',\n    github:'https://github.com/alex-morgan',\n    youtube:'',instagram:'',x:'',facebook:'',whatsapp:'',telegram:''\n  }\n};\nconst DEFAULT_SHOW={\n  email:true,phone:true,location:true,tagline:false,\n  photo:false,company:true,school:false,\n  portfolio:true,linkedin:true,github:true,\n  youtube:false,instagram:false,x:false,facebook:false,whatsapp:false,telegram:false\n};\nlet DATA,ORDER,ASSETS,SCHEME,SWATCHES,ICONS,PHOTOS,LOGOS;\nfunction freshState(){\n  DATA=JSON.parse(JSON.stringify(DEFAULTS));\n  DATA.show=JSON.parse(JSON.stringify(DEFAULT_SHOW));\n  ORDER=LINKS.map(l=>l.key);                 // default: portfolio → LinkedIn → professional → social\n  ASSETS={photo:null,companyLogo:null,schoolLogo:null};\n  SCHEME={pri:'#6d28d9',acc:'#b45309',name:'Amethyst & Amber',fromImage:false};\n  SWATCHES=[];\n  ICONS={shape:'rounded',size:26};\n  PHOTOS={size:84};                          // profile photo width option — compact / standard / large\n  LOGOS={h:54};                              // organisation logo height option\n}\nconst lgH=f=>Math.round(LOGOS.h*f);          // per-design logo height factor\nfreshState();\n\n// ══════════ SMALL HELPERS ══════════\nconst esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/<\/g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');\nconst tel=s=>String(s||'').replace(/[^\\d+]/g,'');\nconst initials=s=>String(s||'').trim().split(/\\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();\nconst j=(arr,sep)=>arr.filter(Boolean).join(sep);\nfunction normalizeUrl(key,v){\n  v=String(v||'').trim();\n  if(!v)return '';\n  if(key==='whatsapp'){const d=v.replace(/[^\\d]/g,'');if(/^\\d{6,15}$/.test(d)&&!/^https?:/i.test(v))return 'https://wa.me/'+d;}\n  if(key==='telegram'&&/^@?[A-Za-z0-9_]{3,32}$/.test(v)&&!/^https?:/i.test(v))return 'https://t.me/'+v.replace(/^@/,'');\n  if(/^https?:\\/\\//i.test(v))return v;\n  if(/^\\/\\//.test(v))return 'https:'+v;\n  if(/^mailto:/i.test(v))return v;\n  if(/\\s/.test(v)||!/\\./.test(v))return v;      // not a url — keep as typed\n  return 'https://'+v;\n}\nfunction hex2(n){return Math.max(0,Math.min(255,Math.round(n))).toString(16).padStart(2,'0');}\nfunction hexToRgb(h){h=String(h||'#000').replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');return [parseInt(h.slice(0,2),16)||0,parseInt(h.slice(2,4),16)||0,parseInt(h.slice(4,6),16)||0];}\nfunction rgbToHex(r,g,b){return '#'+hex2(r)+hex2(g)+hex2(b);}\nfunction tint(h,t){const c=hexToRgb(h);return rgbToHex(c[0]+(255-c[0])*t,c[1]+(255-c[1])*t,c[2]+(255-c[2])*t);}\nfunction shade(h,t){const c=hexToRgb(h);return rgbToHex(c[0]*t,c[1]*t,c[2]*t);}\nfunction lumOf(h){const c=hexToRgb(h);return (0.299*c[0]+0.587*c[1]+0.114*c[2])/255;}\nfunction deriveAccent(pri){ return lumOf(pri)<0.5?tint(pri,0.45):shade(pri,0.62); }\nfunction pal(){return {pri:SCHEME.pri,acc:SCHEME.acc,dark:shade(SCHEME.pri,0.72),soft:tint(SCHEME.pri,0.88),deep:shade(SCHEME.pri,0.55)};}\n\n// ══════════ OFFICIAL SQUARE BRAND MARKS — drawn once, cached as images ══════════\n// Real brand marks are embedded as images (not drawings), which is what lets the\n// icons and their links survive a paste into Gmail / Outlook / Apple Mail.\nconst BP={\n  linkedin:'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z',\n  github:'M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12',\n  youtube:'M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z',\n  x:'M18.901 1.153h3.68l-8.042 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z',\n  facebook:'M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z',\n  whatsapp:'M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z',\n  telegram:'M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z'\n};\nconst BC={linkedin:'#0A66C2',github:'#181717',youtube:'#FF0000',x:'#000000',facebook:'#1877F2',whatsapp:'#25D366',telegram:'#229ED9'};\n// marks whose path already fills the whole square (letters knock out of the tile itself)\nconst FULLBLEED={linkedin:true,youtube:true,facebook:true};\nconst iconCache={};\nfunction roundRectPath(x,px,r){\n  x.moveTo(r,0);x.lineTo(px-r,0);x.quadraticCurveTo(px,0,px,r);\n  x.lineTo(px,px-r);x.quadraticCurveTo(px,px,px-r,px);\n  x.lineTo(r,px);x.quadraticCurveTo(0,px,0,px-r);\n  x.lineTo(0,r);x.quadraticCurveTo(0,0,r,0);\n}\nfunction fillGlyph(x,d,px,scale,color){\n  const p=new Path2D(d),s=px*scale/24,off=(px-24*s)/2;\n  x.save();x.translate(off,off);x.scale(s,s);x.fillStyle=color;x.fill(p);x.restore();\n}\nfunction drawGlobe(x,px,color){ // portfolio mark — tinted to the current scheme\n  const c=px/2,lw=Math.max(2,px*0.075);\n  x.strokeStyle=color;x.lineWidth=lw;x.lineCap='round';\n  x.beginPath();x.arc(c,c,px*0.36,0,Math.PI*2);x.stroke();\n  x.beginPath();x.ellipse(c,c,px*0.155,px*0.36,0,0,Math.PI*2);x.stroke();\n  x.beginPath();x.moveTo(c-px*0.36,c);x.lineTo(c+px*0.36,c);x.stroke();\n}\nfunction brandPng(key,disp){\n  const px=Math.max(24,Math.round(disp*2)); // 2× for crisp rendering everywhere\n  const ck=key+'|'+px+'|'+ICONS.shape+'|'+SCHEME.pri;\n  if(iconCache[ck])return iconCache[ck];\n  const c=document.createElement('canvas');c.width=px;c.height=px;\n  const x=c.getContext('2d');\n  const r=ICONS.shape==='circle'?px/2:Math.round(px*0.24);\n  x.beginPath();roundRectPath(x,px,r);x.closePath();x.save();x.clip();\n  if(key==='portfolio'){\n    x.fillStyle=SCHEME.pri;x.fillRect(0,0,px,px);drawGlobe(x,px,'#ffffff');\n  }else if(key==='instagram'){\n    const g=x.createLinearGradient(0,px,px,0);\n    g.addColorStop(0,'#FEDA75');g.addColorStop(0.5,'#D6249F');g.addColorStop(1,'#2A5EE8');\n    x.fillStyle=g;x.fillRect(0,0,px,px);\n    const lw=px*0.062; x.strokeStyle='#ffffff';x.lineWidth=lw;x.lineCap='round';\n    const b=px*0.20,sz=px-2*b;\n    x.beginPath();roundRectPath(x,sz,b,b,sz,px*0.24);x.closePath();x.stroke();\n    x.beginPath();x.arc(px/2,px/2,px*0.155,0,Math.PI*2);x.stroke();\n    x.fillStyle='#ffffff';x.beginPath();x.arc(px*0.715,px*0.285,px*0.036,0,Math.PI*2);x.fill();\n  }else if(FULLBLEED[key]){\n    x.fillStyle='#ffffff';x.fillRect(0,0,px,px);\n    fillGlyph(x,BP[key],px,1.0,BC[key]);\n  }else{\n    x.fillStyle=BC[key];x.fillRect(0,0,px,px);\n    fillGlyph(x,BP[key],px,key==='whatsapp'||key==='telegram'?0.66:0.60,'#ffffff');\n  }\n  x.restore();\n  const url=c.toDataURL('image/png');\n  iconCache[ck]=url;return url;\n}\n\n// ══════════ LINK ROWS + EMBEDDED LINKS (order-aware) ══════════\nfunction activeLinks(){\n  return ORDER.map(k=>{\n    const def=LINKS.find(l=>l.key===k)||{key:k,label:LINK_LABEL[k]||k};\n    return {key:def.key,label:def.label,url:normalizeUrl(def.key,DATA.links[def.key])};\n  }).filter(l=>DATA.show[l.key]&&l.url);\n}\nfunction socialRow(tile,gap){\n  if(tile==null)tile=ICONS.size;\n  if(gap==null)gap=8;\n  const list=activeLinks();\n  if(!list.length)return '';\n  return '<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"display:inline;\"><tr>'+\n    list.map(l=>`<td style=\"padding:0 ${gap}px 0 0;\"><a href=\"${esc(l.url)}\" target=\"_blank\" rel=\"noopener\" style=\"text-decoration:none;line-height:0;display:inline-block;\"><img src=\"${brandPng(l.key,tile)}\" width=\"${tile}\" height=\"${tile}\" alt=\"${esc(l.label)}\" title=\"${esc(l.label)}\" style=\"display:block;border:0;width:${tile}px;height:${tile}px;\"><\/a><\/td>`).join('')+\n    '<\/tr><\/table>';\n}\nfunction socialInline(tile){\n  if(tile==null)tile=20;\n  const list=activeLinks();\n  if(!list.length)return '';\n  return list.map(l=>`<a href=\"${esc(l.url)}\" target=\"_blank\" rel=\"noopener\" title=\"${esc(l.label)}\" style=\"display:inline-block;margin-left:7px;line-height:0;vertical-align:-${Math.round(tile*0.32)}px;text-decoration:none;\"><img src=\"${brandPng(l.key,tile)}\" width=\"${tile}\" height=\"${tile}\" alt=\"${esc(l.label)}\" style=\"display:block;border:0;width:${tile}px;height:${tile}px;\"><\/a>`).join('');\n}\nfunction socialTextLinks(color){\n  const list=activeLinks();\n  if(!list.length)return '';\n  return list.map(l=>`<a href=\"${esc(l.url)}\" target=\"_blank\" rel=\"noopener\" style=\"color:${color};text-decoration:none;font-weight:600;\">${esc(l.label)}<\/a>`).join('<span style=\"color:#b8bed6;\"> &middot; <\/span>');\n}\n\n// ══════════ COLOUR EXTRACTION (from any uploaded image) ══════════\nfunction extractSwatches(dataURL,cb){\n  const img=new Image();\n  img.onload=()=>{\n    let out=[];\n    try{\n      const size=48,c=document.createElement('canvas');\n      c.width=size;c.height=size;\n      const ctx=c.getContext('2d');\n      ctx.fillStyle='#ffffff';ctx.fillRect(0,0,size,size);\n      ctx.drawImage(img,0,0,size,size);\n      const px=ctx.getImageData(0,0,size,size).data;\n      const buckets={};\n      for(let i=0;i<px.length;i+=4){\n        if(px[i+3]<200)continue;\n        const r=px[i],g=px[i+1],b=px[i+2];\n        if(r>240&&g>240&&b>240)continue;      // near-white backdrop\n        if(r<28&&g<28&&b<28)continue;         // near-black\n        const key=(r>>4)+','+(g>>4)+','+(b>>4);\n        if(!buckets[key])buckets[key]={n:0,r:0,g:0,b:0};\n        const bk=buckets[key];bk.n++;bk.r+=r;bk.g+=g;bk.b+=b;\n      }\n      const scored=Object.values(buckets).map(bk=>{\n        const r=bk.r/bk.n,g=bk.g/bk.n,b=bk.b/bk.n;\n        const sat=(Math.max(r,g,b)-Math.min(r,g,b))/255;\n        return {n:bk.n,r,g,b,score:bk.n*(0.3+sat*1.4)};\n      }).sort((a,b)=>b.score-a.score);\n      for(const s of scored){\n        if(out.length>=5)break;\n        if(out.every(o=>Math.abs(o.r-s.r)+Math.abs(o.g-s.g)+Math.abs(o.b-s.b)>90))\n          out.push({r:s.r,g:s.g,b:s.b});\n      }\n      // lift very dark picks so they stay usable as signature colours\n      out=out.map(o=>{\n        const L=(0.299*o.r+0.587*o.g+0.114*o.b)/255;\n        let {r,g,b}=o;\n        if(L<0.18){r=Math.min(255,r+80);g=Math.min(255,g+80);b=Math.min(255,b+80);}\n        return rgbToHex(r,g,b);\n      });\n    }catch(e){out=[];}\n    cb(out);\n  };\n  img.onerror=()=>cb([]);\n  img.src=dataURL;\n}\nfunction applyScheme(pri,acc,name,fromImage){\n  SCHEME.pri=pri;SCHEME.acc=acc||deriveAccent(pri);\n  SCHEME.name=name||'Custom';SCHEME.fromImage=!!fromImage;\n  syncSchemeUI();\n  scheduleRender();\n}\nfunction syncSchemeUI(){\n  document.querySelectorAll('.preset-chip').forEach(ch=>{\n    const p=PRESETS[+ch.dataset.preset];\n    ch.classList.toggle('on',!SCHEME.fromImage&&!!p&&p[0]===SCHEME.name);\n  });\n  document.querySelectorAll('.cc-pick input[type=\"color\"]').forEach(inp=>{\n    if(inp.dataset.color==='pri')inp.value=SCHEME.pri;\n    if(inp.dataset.color==='acc')inp.value=SCHEME.acc;\n  });\n  document.querySelectorAll('.cc-hex').forEach(h=>{\n    if(h.dataset.color==='pri')h.textContent=SCHEME.pri.toUpperCase();\n    if(h.dataset.color==='acc')h.textContent=SCHEME.acc.toUpperCase();\n  });\n  document.querySelectorAll('.sw-btn').forEach(b=>b.classList.toggle('on',b.dataset.hex&&b.dataset.hex.toLowerCase()===SCHEME.pri.toLowerCase()));\n}\n\n// ══════════ SHARED BUILDERS (elements appear only when toggled on) ══════════\nconst nm=D=>esc(D.name||'Your Name');\nfunction contactParts(D,color){\n  if(color==null)color='#3d405b';\n  const a=[];\n  if(D.show.phone&&D.phone)a.push(`<a href=\"tel:${esc(tel(D.phone))}\" style=\"color:${color};text-decoration:none;\">${esc(D.phone)}<\/a>`);\n  if(D.show.email&&D.email)a.push(`<a href=\"mailto:${esc(D.email)}\" style=\"color:${color};text-decoration:none;\">${esc(D.email)}<\/a>`);\n  if(D.show.location&&D.location)a.push(`<span style=\"color:${color};\">${esc(D.location)}<\/span>`);\n  return a;\n}\nfunction orgParts(D){\n  const a=[];\n  if(D.show.company&&D.company)a.push({name:D.company,asset:ASSETS.companyLogo,link:normalizeUrl(null,D.companyLink)});\n  if(D.show.school&&D.college)a.push({name:D.college,asset:ASSETS.schoolLogo,link:normalizeUrl(null,D.collegeLink)});\n  return a;\n}\n// logos render clearly: auto-sized to the chosen height, width capped so nothing overflows;\n// when a website is set, the logo itself becomes the link\nfunction orgLogoImg(asset,o){\n  if(!asset)return '';\n  if(o==null)o={};\n  let h=o.logoH||LOGOS.h,w=Math.round(asset.w*h/asset.h);\n  const maxW=o.maxW||230;\n  if(w>maxW){w=maxW;h=Math.max(8,Math.round(asset.h*w/asset.w));}\n  if(w<1)w=1;if(h<1)h=1;\n  const r=Math.max(4,Math.round(Math.min(w,h)*0.16));\n  const img=`<img src=\"${asset.src}\" width=\"${w}\" height=\"${h}\" alt=\"\" style=\"width:${w}px;height:${h}px;border-radius:${r}px;display:block;border:0;\">`;\n  const inner=o.chip\n    ?`<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td bgcolor=\"#ffffff\" style=\"background-color:#ffffff;padding:5px;border-radius:${r+5}px;\">${img}<\/td><\/tr><\/table>`\n    :img;\n  return o.link?`<a href=\"${esc(o.link)}\" target=\"_blank\" rel=\"noopener\" style=\"text-decoration:none;display:inline-block;line-height:0;\">${inner}<\/a>`:inner;\n}\nfunction orgRows(D,o){\n  if(o==null)o={};\n  const parts=orgParts(D);\n  if(!parts.length)return '';\n  const size=o.size||12.5,color=o.color||'#3d405b',gap=o.gap==null?6:o.gap;\n  return parts.map((p,i)=>{\n    const logo=p.asset?orgLogoImg(p.asset,{...o,link:p.link}):'';\n    const nStyle=`font-size:${size}px;color:${color};${o.weight?'font-weight:'+o.weight+';':''}${o.italic?'font-style:italic;':''}`;\n    const nameHtml=p.link?`<a href=\"${esc(p.link)}\" target=\"_blank\" rel=\"noopener\" style=\"${nStyle}text-decoration:none;\">${esc(p.name)}<\/a>`:`<span style=\"${nStyle}\">${esc(p.name)}<\/span>`;\n    return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin:${i?gap:0}px 0 0;\"><tr>${logo?`<td valign=\"middle\" style=\"padding-right:11px;\">${logo}<\/td>`:''}<td valign=\"middle\">${nameHtml}<\/td><\/tr><\/table>`;\n  }).join('');\n}\n// rectangular photo with softly rounded corners (or an initials tile when no photo)\nfunction photoOrTile(D,w){\n  if(!D.show.photo)return '';\n  if(ASSETS.photo){\n    const a=ASSETS.photo,h=Math.max(20,Math.round(a.h*w/a.w));\n    return `<img src=\"${a.src}\" width=\"${w}\" height=\"${h}\" alt=\"${esc(D.name)}\" style=\"width:${w}px;height:${h}px;border-radius:10px;display:block;border:0;\">`;\n  }\n  const A=pal(),h=Math.round(w*1.25),fs=Math.round(w*0.42);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"${w}\" height=\"${h}\" align=\"center\" valign=\"middle\" bgcolor=\"${A.pri}\" style=\"background-color:${A.pri};width:${w}px;height:${h}px;border-radius:12px;font-family:Arial,Helvetica,sans-serif;font-size:${fs}px;font-weight:bold;color:#ffffff;letter-spacing:1px;\">${esc(initials(D.name))}<\/td><\/tr><\/table>`;\n}\n// inline variant for single-line designs — uploaded photo only, vertically centred\nfunction photoImg(D,w,inline){\n  if(!D.show.photo||!ASSETS.photo)return '';\n  const a=ASSETS.photo,h=Math.max(20,Math.round(a.h*w/a.w));\n  const st=`width:${w}px;height:${h}px;border-radius:${Math.max(4,Math.round(w*0.14))}px;${inline?'display:inline-block;vertical-align:middle;margin-right:7px;':'display:block;'}border:0;`;\n  return `<img src=\"${a.src}\" width=\"${w}\" height=\"${h}\" alt=\"${esc(D.name)}\" style=\"${st}\">`;\n}\n\n// ══════════ THE DESIGNS — one unified system, every one palette-driven ══════════\nconst SIGNATURES=[\n\n{id:'classic',title:'Classic Rule',tag:'Classic',desc:'Timeless serif with double rule lines — quietly authoritative.',\nbuild:D=>{\n  const A=pal();\n  const orgs=orgRows(D,{size:12,color:'#5a6b7d',italic:true,logoH:lgH(0.85),gap:7});\n  const cts=j(contactParts(D),' &nbsp;&middot;&nbsp; ');\n  const soc=socialRow();\n  const pw=Math.round(PHOTOS.size*0.72),photo=photoOrTile(D,pw);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-family:Georgia,'Times New Roman',serif;color:#1a1a2e;line-height:1.5;\"><tr>\n  ${photo?`<td width=\"${pw+18}\" valign=\"middle\">${photo}<\/td>`:''}\n  <td valign=\"middle\"><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n  <tr><td style=\"padding-bottom:2px;\"><span style=\"font-size:19px;font-weight:bold;color:${A.dark};letter-spacing:0.4px;\">${nm(D)}<\/span><\/td><\/tr>\n  ${D.caption?`<tr><td style=\"font-size:12px;color:#5a6b7d;padding-bottom:9px;\">${esc(D.caption)}<\/td><\/tr>`:''}\n  ${orgs?`<tr><td style=\"padding-bottom:9px;\">${orgs}<\/td><\/tr>`:''}\n  ${cts?`<tr><td style=\"border-top:2px solid ${A.dark};border-bottom:1px solid ${A.acc}55;padding:9px 0;font-size:12px;color:#3d405b;\">${cts}<\/td><\/tr>`:''}\n  ${soc?`<tr><td style=\"padding-top:9px;\">${soc}<\/td><\/tr>`:''}\n  <\/table><\/td><\/tr><\/table>`;\n}},\n\n{id:'sidebar',title:'Sidebar Accent',tag:'Sidebar',desc:'Crisp vertical accent bar with a clean sans contact column.',\nbuild:D=>{\n  const A=pal();\n  const cts=j(contactParts(D),'<span style=\"color:#b8bed6;\">&nbsp;|&nbsp;<\/span>');\n  const orgs=orgRows(D,{size:12,color:'#3d405b',logoH:lgH(0.85),gap:7});\n  const soc=socialRow();\n  const pw=Math.round(PHOTOS.size*0.72),photo=photoOrTile(D,pw);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n  <td width=\"5\" bgcolor=\"${A.pri}\" style=\"width:5px;border-radius:2px;\"><\/td>\n  ${photo?`<td width=\"${pw+16}\" valign=\"middle\" style=\"padding-left:14px;\">${photo}<\/td>`:''}\n  <td style=\"padding-left:15px;font-family:Arial,Helvetica,sans-serif;line-height:1.55;\">\n  <span style=\"font-size:17px;font-weight:bold;color:#1a1a2e;display:block;\">${nm(D)}<\/span>\n  ${D.caption?`<span style=\"font-size:11px;color:${A.dark};font-weight:bold;letter-spacing:1.2px;display:block;padding:2px 0 6px;\">${esc(D.caption).toUpperCase()}<\/span>`:''}\n  ${orgs?`<span style=\"display:block;padding-bottom:2px;\">${orgs}<\/span>`:''}\n  ${cts?`<span style=\"font-size:12px;color:#3d405b;display:block;padding-top:6px;\">${cts}<\/span>`:''}\n  ${soc?`<span style=\"display:block;padding-top:8px;\">${soc}<\/span>`:''}\n  <\/td><\/tr><\/table>`;\n}},\n\n{id:'banner',title:'Banner Header',tag:'Banner',desc:'Full-width colour banner over a soft body panel with your photo.',\nbuild:D=>{\n  const A=pal();\n  const cts=j(contactParts(D,'#3d405b'),`<span style=\"color:${A.pri}88;\">&nbsp;|&nbsp;<\/span>`);\n  const orgs=orgRows(D,{size:12,color:'#3d405b',logoH:lgH(0.9),gap:8});\n  const soc=socialRow();\n  const pw=Math.round(PHOTOS.size*0.86),photo=photoOrTile(D,pw);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"480\" style=\"font-family:Arial,Helvetica,sans-serif;border-radius:10px;\">\n  <tr><td bgcolor=\"${A.dark}\" style=\"background-color:${A.dark};padding:14px 18px;border-radius:10px 10px 0 0;\">\n  <span style=\"color:#ffffff;font-size:16px;font-weight:bold;letter-spacing:0.5px;\">${nm(D)}<\/span>\n  ${D.caption?`<br><span style=\"color:${A.soft};font-size:10.5px;letter-spacing:1.5px;font-weight:bold;\">${esc(D.caption).toUpperCase()}<\/span>`:''}\n  <\/td><\/tr>\n  <tr><td bgcolor=\"${A.soft}\" style=\"background-color:${A.soft};border:1px solid ${A.pri}55;border-top:none;border-radius:0 0 10px 10px;padding:14px 18px;font-size:12px;color:#3d405b;line-height:1.7;\">\n  ${photo||orgs||cts?`<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n  ${photo?`<td width=\"${pw+12}\" valign=\"top\" style=\"padding-right:16px;\">${photo}<\/td>`:''}\n  <td valign=\"top\">${orgs}${cts?`<span style=\"display:block;padding-top:${orgs?'7':'0'}px;\">${cts}<\/span>`:''}<\/td>\n  <\/tr><\/table>`:''}\n  ${soc?`<span style=\"display:block;padding-top:10px;\">${soc}<\/span>`:''}\n  <\/td><\/tr><\/table>`;\n}},\n\n{id:'bizcard',title:'Business Card',tag:'Two-column',desc:'Rectangular photo left, details right — the classic card layout.',\nbuild:D=>{\n  const A=pal();\n  const cts=j(contactParts(D),'<span style=\"color:#b8bed6;\">&nbsp;|&nbsp;<\/span>');\n  const orgs=orgRows(D,{size:12,color:'#3d405b',logoH:lgH(0.85),gap:7});\n  const soc=socialRow();\n  const photo=photoOrTile(D,PHOTOS.size);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n  ${photo?`<td width=\"${PHOTOS.size+16}\" valign=\"middle\">${photo}<\/td>`:''}\n  <td valign=\"middle\" style=\"${photo?'padding-left:16px;':''}font-family:Arial,Helvetica,sans-serif;line-height:1.5;\">\n  <span style=\"font-size:16px;font-weight:bold;color:#1a1a2e;display:block;\">${nm(D)}<\/span>\n  ${D.caption?`<span style=\"font-size:11.5px;color:${A.dark};font-weight:bold;display:block;padding-bottom:5px;\">${esc(D.caption)}<\/span>`:''}\n  ${orgs?`<span style=\"display:block;padding-bottom:2px;\">${orgs}<\/span>`:''}\n  ${cts?`<span style=\"font-size:11.5px;color:#3d405b;display:block;padding-top:5px;\">${cts}<\/span>`:''}\n  ${soc?`<span style=\"display:block;padding-top:7px;\">${soc}<\/span>`:''}\n  <\/td><\/tr><\/table>`;\n}},\n\n{id:'monogram',title:'Monogram Tile',tag:'Monogram',desc:'Initials on a bold colour tile — a personal brand mark without a photo.',\nbuild:D=>{\n  const A=pal();\n  const cts=j(contactParts(D),'<span style=\"color:#b8bed6;\">&nbsp;|&nbsp;<\/span>');\n  const orgs=orgRows(D,{size:12,color:'#3d405b',logoH:lgH(0.85),gap:7});\n  const soc=socialRow();\n  const w=PHOTOS.size,h=Math.round(w*1.25),fs=Math.round(w*0.40);\n  let tile;\n  if(ASSETS.photo&&D.show.photo){\n    const a=ASSETS.photo,ph=Math.max(20,Math.round(a.h*w/a.w));\n    tile=`<img src=\"${a.src}\" width=\"${w}\" height=\"${ph}\" alt=\"${esc(D.name)}\" style=\"width:${w}px;height:${ph}px;border-radius:12px;display:block;border:0;\">`;\n  }else if(D.show.photo){\n    tile=`<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td width=\"${w}\" height=\"${h}\" align=\"center\" valign=\"middle\" bgcolor=\"${A.pri}\" style=\"background-color:${A.pri};width:${w}px;height:${h}px;border-radius:12px;font-family:Arial,Helvetica,sans-serif;font-size:${fs}px;font-weight:bold;color:#ffffff;letter-spacing:1px;\">${esc(initials(D.name))}<table align=\"center\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"${Math.round(w*0.42)}\" style=\"margin-top:7px;\"><tr><td style=\"border-top:3px solid ${A.acc};font-size:0;line-height:3px;\">&nbsp;<\/td><\/tr><\/table><\/td><\/tr><\/table>`;\n  }\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n  ${tile?`<td width=\"${w+16}\" valign=\"middle\">${tile}<\/td>`:''}\n  <td valign=\"middle\" style=\"font-family:Arial,Helvetica,sans-serif;line-height:1.55;\">\n  <span style=\"font-size:16px;font-weight:bold;color:#1a1a2e;display:block;\">${nm(D)}<\/span>\n  ${D.caption?`<span style=\"font-size:11px;color:${A.dark};font-weight:bold;letter-spacing:1px;display:block;padding:1px 0 4px;\">${esc(D.caption).toUpperCase()}<\/span>`:''}\n  ${orgs?`<span style=\"display:block;padding-bottom:2px;\">${orgs}<\/span>`:''}\n  ${cts?`<span style=\"font-size:11.5px;color:#3d405b;display:block;\">${cts}<\/span>`:''}\n  ${soc?`<span style=\"display:block;padding-top:7px;\">${soc}<\/span>`:''}\n  <\/td><\/tr><\/table>`;\n}},\n\n{id:'company',title:'Company Branded',tag:'Logo-forward',desc:'Organisation-forward block — logos sit large, colours follow your scheme.',\nbuild:D=>{\n  const A=pal();\n  const cts=j(contactParts(D),'<span style=\"color:#b8bed6;\">&nbsp;&middot;&nbsp;<\/span>');\n  const soc=socialRow();\n  const pw=Math.round(PHOTOS.size*0.8),photo=photoOrTile(D,pw);\n  let orgRowsHtml='';\n  if(D.show.company&&D.company){\n    const cl=normalizeUrl(null,D.companyLink);\n    const logo=ASSETS.companyLogo?orgLogoImg(ASSETS.companyLogo,{logoH:lgH(1.15),maxW:250,link:cl}):'';\n    const nStyle=`font-size:13.5px;color:${A.dark};font-weight:bold;`;\n    const nameHtml=cl?`<a href=\"${esc(cl)}\" target=\"_blank\" rel=\"noopener\" style=\"${nStyle}text-decoration:none;\">${esc(D.company)}<\/a>`:`<span style=\"${nStyle}\">${esc(D.company)}<\/span>`;\n    orgRowsHtml+=`<tr><td style=\"padding:5px 0 2px;\">${logo}${nameHtml}<\/td><\/tr>`;\n  }\n  if(D.show.school&&D.college){\n    const cl=normalizeUrl(null,D.collegeLink);\n    const logo=ASSETS.schoolLogo?orgLogoImg(ASSETS.schoolLogo,{link:cl}):'';\n    const nStyle=`font-size:12.5px;color:${A.dark};font-weight:bold;`;\n    const nameHtml=cl?`<a href=\"${esc(cl)}\" target=\"_blank\" rel=\"noopener\" style=\"${nStyle}text-decoration:none;\">${esc(D.college)}<\/a>`:`<span style=\"${nStyle}\">${esc(D.college)}<\/span>`;\n    orgRowsHtml+=`<tr><td style=\"padding:2px 0;\">${logo}${nameHtml}<\/td><\/tr>`;\n  }\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-family:Arial,Helvetica,sans-serif;line-height:1.55;\"><tr>\n  ${photo?`<td width=\"${pw+16}\" valign=\"top\">${photo}<\/td>`:''}\n  <td valign=\"top\"><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n  <tr><td style=\"padding-bottom:3px;\"><span style=\"font-size:15px;font-weight:bold;color:#1a1a2e;\">${nm(D)}<\/span><\/td><\/tr>\n  ${D.caption?`<tr><td style=\"font-size:11.5px;color:#3d405b;padding-bottom:4px;\">${esc(D.caption)}<\/td><\/tr>`:''}\n  ${orgRowsHtml}\n  ${cts?`<tr><td style=\"border-top:1px solid ${A.pri}44;padding-top:8px;font-size:11px;color:#3d405b;\">${cts}<\/td><\/tr>`:''}\n  ${soc?`<tr><td style=\"padding-top:8px;\">${soc}<\/td><\/tr>`:''}\n  <\/table><\/td><\/tr><\/table>`;\n}},\n\n{id:'gradient',title:'Gradient Banner',tag:'Gradient',desc:'Two-tone gradient strip that shifts with your colour scheme.',\nbuild:D=>{\n  const A=pal();\n  const cts=j(contactParts(D,'#3d405b'),'<span style=\"color:#d1d5db;\">&nbsp;|&nbsp;<\/span>');\n  const orgs=orgRows(D,{size:12,color:'#3d405b',logoH:lgH(0.9),gap:8});\n  const soc=socialRow();\n  const pw=Math.round(PHOTOS.size*0.72),photo=photoOrTile(D,pw);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"440\" style=\"font-family:Arial,Helvetica,sans-serif;border-radius:10px;\">\n  <tr><td bgcolor=\"${A.pri}\" style=\"background-color:${A.pri};background-image:linear-gradient(135deg,${A.pri},${A.deep});padding:15px 18px;border-radius:10px 10px 0 0;\">\n  <span style=\"color:#ffffff;font-size:16px;font-weight:bold;display:block;\">${nm(D)}<\/span>\n  ${D.caption?`<span style=\"color:#ffffff;font-size:10.5px;letter-spacing:1.5px;font-weight:bold;\">${esc(D.caption).toUpperCase()}<\/span>`:''}\n  <\/td><\/tr>\n  <tr><td style=\"background-color:#fafafa;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;padding:13px 18px;font-size:11.5px;color:#3d405b;line-height:1.7;\">\n  ${photo||orgs||cts?`<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n  ${photo?`<td width=\"${pw+14}\" valign=\"top\">${photo}<\/td>`:''}\n  <td valign=\"top\">${orgs}${cts?`<span style=\"display:block;padding-top:${orgs?'7':'0'}px;\">${cts}<\/span>`:''}<\/td>\n  <\/tr><\/table>`:''}\n  ${soc?`<span style=\"display:block;padding-top:9px;\">${soc}<\/span>`:''}\n  <\/td><\/tr><\/table>`;\n}},\n\n{id:'typo',title:'Typographic Statement',tag:'Editorial',desc:'Editorial fashion-magazine type with wide letter tracking.',\nbuild:D=>{\n  const A=pal();\n  const cts=j(contactParts(D,'#5c6470'),'<span style=\"color:#c9c3d4;\">&nbsp;&mdash;&nbsp;<\/span>');\n  const orgs=orgRows(D,{size:10.5,color:'#5c6470',logoH:lgH(0.75),gap:6});\n  const soc=socialRow();\n  const pw=Math.round(PHOTOS.size*0.66),photo=photoOrTile(D,pw);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-family:Georgia,'Times New Roman',serif;line-height:1.5;\"><tr>\n  ${photo?`<td width=\"${pw+16}\" valign=\"middle\">${photo}<\/td>`:''}\n  <td><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n  <tr><td style=\"border-top:1px solid #1a1a2e;padding-top:10px;\">\n  <span style=\"font-size:24px;font-weight:bold;color:#1a1a2e;letter-spacing:5px;\">${esc((D.name||'Your Name').toUpperCase())}<\/span><br>\n  ${D.caption?`<span style=\"font-size:9.5px;color:${A.dark};letter-spacing:4px;font-weight:bold;\">${esc(D.caption).toUpperCase()}<\/span>`:''}\n  <\/td><\/tr>\n  ${orgs?`<tr><td style=\"padding-top:7px;\">${orgs}<\/td><\/tr>`:''}\n  ${cts?`<tr><td style=\"border-bottom:1px solid #1a1a2e;padding:9px 0;font-size:11px;color:#5c6470;letter-spacing:0.5px;\">${cts}<\/td><\/tr>`:''}\n  ${soc?`<tr><td style=\"padding-top:9px;\">${soc}<\/td><\/tr>`:''}\n  <\/table><\/td><\/tr><\/table>`;\n}},\n\n{id:'script',title:'Signature Script',tag:'Script',desc:'Handwritten-style name with an ink underline flourish.',\nbuild:D=>{\n  const A=pal();\n  const cts=j(contactParts(D),'<span style=\"color:#b8bed6;\">&nbsp;|&nbsp;<\/span>');\n  const orgs=orgRows(D,{size:12,color:'#5c6470',logoH:lgH(0.85),gap:7});\n  const soc=socialRow();\n  const pw=Math.round(PHOTOS.size*0.72),photo=photoOrTile(D,pw);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-family:Arial,Helvetica,sans-serif;line-height:1.5;\"><tr>\n  ${photo?`<td width=\"${pw+16}\" valign=\"middle\">${photo}<\/td>`:''}\n  <td valign=\"middle\"><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n  <tr><td style=\"font-family:'Brush Script MT','Segoe Script','Lucida Handwriting',cursive;font-size:30px;color:#1a1a2e;line-height:1.15;\">${nm(D)}<\/td><\/tr>\n  <tr><td style=\"padding:3px 0 7px;\"><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"175\"><tr><td style=\"border-top:2px solid ${A.acc};\"><\/td><\/tr><\/table><\/td><\/tr>\n  ${D.caption?`<tr><td style=\"font-size:11.5px;color:#5c6470;font-style:italic;padding-bottom:4px;\">${esc(D.caption)}<\/td><\/tr>`:''}\n  ${orgs?`<tr><td>${orgs}<\/td><\/tr>`:''}\n  ${cts?`<tr><td style=\"font-size:11.5px;color:#3d405b;padding-top:4px;\">${cts}<\/td><\/tr>`:''}\n  ${soc?`<tr><td style=\"padding-top:8px;\">${soc}<\/td><\/tr>`:''}\n  <\/table><\/td><\/tr><\/table>`;\n}},\n\n{id:'pills',title:'Pill Tags',tag:'Pills',desc:'Contacts and organisations as soft rounded pills — playful but tidy.',\nbuild:D=>{\n  const A=pal();\n  const pills=[];\n  orgParts(D).forEach(p=>{\n    const mini=p.asset?orgLogoImg(p.asset,{logoH:20,maxW:80,link:p.link}):'';\n    const nm=p.link?`<a href=\"${esc(p.link)}\" target=\"_blank\" rel=\"noopener\" style=\"color:${A.dark};text-decoration:none;\">${esc(p.name)}<\/a>`:`<span style=\"color:${A.dark};\">${esc(p.name)}<\/span>`;\n    pills.push(`${mini}${nm}`);\n  });\n  if(D.show.phone&&D.phone)pills.push(`<a href=\"tel:${esc(tel(D.phone))}\" style=\"color:${A.dark};text-decoration:none;\">${esc(D.phone)}<\/a>`);\n  if(D.show.email&&D.email)pills.push(`<a href=\"mailto:${esc(D.email)}\" style=\"color:${A.dark};text-decoration:none;\">${esc(D.email)}<\/a>`);\n  if(D.show.location&&D.location)pills.push(`<span style=\"color:${A.dark};\">${esc(D.location)}<\/span>`);\n  const pillHtml=pills.map(p=>`<span style=\"display:inline-block;background-color:${A.soft};border:1px solid ${A.pri}55;border-radius:999px;padding:4px 12px;font-size:11px;font-weight:600;margin:2px 5px 2px 0;\">${p}<\/span>`).join('');\n  const soc=socialRow();\n  const pw=Math.round(PHOTOS.size*0.72),photo=photoOrTile(D,pw);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-family:Arial,Helvetica,sans-serif;line-height:1.6;\"><tr>\n  ${photo?`<td width=\"${pw+16}\" valign=\"middle\">${photo}<\/td>`:''}\n  <td valign=\"middle\"><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n  <tr><td><span style=\"font-size:16px;font-weight:bold;color:#1a1a2e;\">${nm(D)}<\/span>\n  ${D.caption?`<span style=\"font-size:11.5px;color:#5c6470;\">&nbsp;&nbsp;${esc(D.caption)}<\/span>`:''}<\/td><\/tr>\n  ${pillHtml?`<tr><td style=\"padding-top:7px;\">${pillHtml}<\/td><\/tr>`:''}\n  ${soc?`<tr><td style=\"padding-top:9px;\">${soc}<\/td><\/tr>`:''}\n  <\/table><\/td><\/tr><\/table>`;\n}},\n\n{id:'darkexec',title:'Dark Premium',tag:'Dark',desc:'Deep ink panel with an accent rule — the after-hours look.',\nbuild:D=>{\n  const A=pal();\n  const lightAcc=lumOf(A.acc)>0.55?A.acc:tint(A.acc,0.55);\n  const cts=j(contactParts(D,'#e8e9f3'),'<span style=\"color:#5d5f85;\">&nbsp;&middot;&nbsp;<\/span>');\n  const orgs=orgRows(D,{size:11.5,color:'#c7cbe6',logoH:lgH(0.9),gap:7,chip:true});\n  const soc=socialRow();\n  const pw=Math.round(PHOTOS.size*0.8),photo=photoOrTile(D,pw);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-family:Arial,Helvetica,sans-serif;border-radius:10px;\">\n  <tr><td style=\"background-color:#14142b;padding:16px 20px 13px;border-radius:10px 10px 0 0;border-top:3px solid ${A.acc};\">\n  ${photo?`<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"display:inline;\"><tr><td style=\"padding-right:14px;\">${photo}<\/td><td>`:''}\n  <span style=\"color:#ffffff;font-size:16px;font-weight:bold;display:block;\">${nm(D)}<\/span>\n  ${D.caption?`<span style=\"color:${lightAcc};font-size:10.5px;letter-spacing:1.5px;font-weight:bold;display:block;padding-top:2px;\">${esc(D.caption).toUpperCase()}<\/span>`:''}\n  ${photo?`<\/td><\/tr><\/table>`:''}\n  <\/td><\/tr>\n  <tr><td style=\"background-color:#1e1e3f;padding:12px 20px 16px;border-radius:0 0 10px 10px;\">\n  ${orgs?`<span style=\"display:block;padding-bottom:2px;\">${orgs}<\/span>`:''}\n  ${cts?`<span style=\"font-size:11.5px;display:block;padding-top:${orgs?'5':'0'}px;\">${cts}<\/span>`:''}\n  ${soc?`<span style=\"display:block;padding-top:10px;\">${soc}<\/span>`:''}\n  <\/td><\/tr><\/table>`;\n}},\n\n{id:'quote',title:'Quote Sign-off',tag:'Quote',desc:'Opens with your own tagline — a memorable personal sign-off.',\nbuild:D=>{\n  const A=pal();\n  const cts=j(contactParts(D),'<span style=\"color:#b8bed6;\">&nbsp;|&nbsp;<\/span>');\n  const orgs=orgRows(D,{size:12,color:'#5c6470',logoH:lgH(0.85),gap:7});\n  const soc=socialRow();\n  const pw=Math.round(PHOTOS.size*0.72),photo=photoOrTile(D,pw);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-family:Georgia,'Times New Roman',serif;line-height:1.65;\"><tr>\n  ${photo?`<td width=\"${pw+16}\" valign=\"middle\">${photo}<\/td>`:''}\n  <td valign=\"middle\"><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n  ${D.show.tagline&&D.tagline?`<tr><td style=\"font-size:12.5px;font-style:italic;color:${A.dark};\">&ldquo;${esc(D.tagline)}&rdquo;<\/td><\/tr>`:''}\n  <tr><td style=\"padding-top:7px;\"><span style=\"font-size:14px;font-weight:bold;color:#1a1a2e;\">${nm(D)}<\/span>\n  ${D.caption?`<span style=\"font-size:11px;color:#5c6470;\">&nbsp;&nbsp;${esc(D.caption)}<\/span>`:''}<\/td><\/tr>\n  ${orgs?`<tr><td style=\"padding-top:3px;\">${orgs}<\/td><\/tr>`:''}\n  ${cts?`<tr><td style=\"font-size:11.5px;padding-top:4px;\">${cts}<\/td><\/tr>`:''}\n  ${soc?`<tr><td style=\"padding-top:8px;\">${soc}<\/td><\/tr>`:''}\n  <\/table><\/td><\/tr><\/table>`;\n}},\n\n{id:'mono',title:'Minimal Mono',tag:'Minimal',desc:'Ultra-quiet near-black type, hairline rules, zero decoration.',\nbuild:D=>{\n  const cts=j(contactParts(D,'#222831'),'<span style=\"color:#aab1bd;\">&nbsp;/&nbsp;<\/span>');\n  const orgs=orgRows(D,{size:11,color:'#5c6470',logoH:lgH(0.75),gap:6});\n  const soc=socialRow();\n  const pw=Math.round(PHOTOS.size*0.66),photo=photoOrTile(D,pw);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-family:Verdana,Geneva,sans-serif;color:#222831;line-height:1.6;font-size:11px;\"><tr>\n  ${photo?`<td width=\"${pw+14}\" valign=\"middle\">${photo}<\/td>`:''}\n  <td valign=\"middle\"><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n  <tr><td style=\"padding-bottom:4px;\"><span style=\"font-size:14px;font-weight:bold;color:#222831;letter-spacing:0.3px;\">${nm(D)}<\/span><\/td><\/tr>\n  ${D.caption?`<tr><td style=\"padding-bottom:3px;color:#5c6470;\">${esc(D.caption)}<\/td><\/tr>`:''}\n  ${orgs?`<tr><td style=\"padding-bottom:8px;\">${orgs}<\/td><\/tr>`:''}\n  ${cts?`<tr><td style=\"border-top:1px solid #d9dde3;padding-top:8px;\">${cts}<\/td><\/tr>`:''}\n  ${soc?`<tr><td style=\"padding-top:8px;\">${soc}<\/td><\/tr>`:''}\n  <\/table><\/td><\/tr><\/table>`;\n}},\n\n{id:'oneliner',title:'The One-Liner',tag:'One-line',desc:'Single-line signature with inline icons — perfect for reply chains.',\nbuild:D=>{\n  const seg=[];\n  const av=photoImg(D,22,true);\n  seg.push(`${av}<span style=\"font-weight:bold;color:#1a1a2e;\">${nm(D)}<\/span>`);\n  if(D.caption)seg.push(esc(D.caption));\n  if(D.show.phone&&D.phone)seg.push(`<a href=\"tel:${esc(tel(D.phone))}\" style=\"color:#3d405b;text-decoration:none;\">${esc(D.phone)}<\/a>`);\n  if(D.show.email&&D.email)seg.push(`<a href=\"mailto:${esc(D.email)}\" style=\"color:#3d405b;text-decoration:none;\">${esc(D.email)}<\/a>`);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-family:Arial,Helvetica,sans-serif;font-size:11.5px;color:#3d405b;line-height:2;\">\n  <tr><td>${j(seg,'<span style=\"color:#b8bed6;\">&nbsp;&bull;&nbsp;<\/span>')}${socialInline(20)}<\/td><\/tr><\/table>`;\n}},\n\n{id:'compact',title:'Compact Footer',tag:'Compact',desc:'Tiny two-line footer — maximum information density.',\nbuild:D=>{\n  const av=photoImg(D,18,true);\n  const head=[`${av}<span style=\"font-weight:bold;color:#1a1a2e;\">${nm(D)}<\/span>`];\n  if(D.caption)head.push(esc(D.caption));\n  if(D.show.location&&D.location)head.push(esc(D.location));\n  orgParts(D).forEach(p=>head.push(p.link?`<a href=\"${esc(p.link)}\" target=\"_blank\" rel=\"noopener\" style=\"color:#5c6470;text-decoration:none;\">${esc(p.name)}<\/a>`:esc(p.name)));\n  const cts=[];\n  if(D.show.phone&&D.phone)cts.push(`<a href=\"tel:${esc(tel(D.phone))}\" style=\"color:#5c6470;text-decoration:none;\">${esc(D.phone)}<\/a>`);\n  if(D.show.email&&D.email)cts.push(`<a href=\"mailto:${esc(D.email)}\" style=\"color:#5c6470;text-decoration:none;\">${esc(D.email)}<\/a>`);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-family:Verdana,Geneva,sans-serif;font-size:10.5px;color:#5c6470;line-height:1.9;\">\n  <tr><td>${j(head,' — ')}<\/td><\/tr>\n  <tr><td>${j(cts,'<span style=\"color:#c3c8d4;\">&nbsp;|&nbsp;<\/span>')}${socialInline(18)}<\/td><\/tr>\n  <\/table>`;\n}},\n\n{id:'socialhub',title:'Social Hub',tag:'Icon-first',desc:'Icon-forward — every enabled channel as a big official square tile.',\nbuild:D=>{\n  const A=pal();\n  const orgs=orgRows(D,{size:11.5,color:'#5c6470',logoH:lgH(0.75),gap:6});\n  const soc=socialRow(34,10);\n  const cts=[];\n  if(D.show.phone&&D.phone)cts.push(`<a href=\"tel:${esc(tel(D.phone))}\" style=\"color:#5c6470;text-decoration:none;\">${esc(D.phone)}<\/a>`);\n  if(D.show.location&&D.location)cts.push(`<span style=\"color:#5c6470;\">${esc(D.location)}<\/span>`);\n  const pw=PHOTOS.size,photo=photoOrTile(D,pw);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-family:Arial,Helvetica,sans-serif;line-height:1.6;\"><tr>\n  ${photo?`<td width=\"${pw+16}\" valign=\"middle\">${photo}<\/td>`:''}\n  <td valign=\"middle\"><table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n  <tr><td><span style=\"font-size:17px;font-weight:bold;color:#1a1a2e;\">${nm(D)}<\/span>\n  ${D.caption?`<span style=\"font-size:11.5px;color:${A.dark};font-weight:bold;\">&nbsp;&nbsp;${esc(D.caption)}<\/span>`:''}<\/td><\/tr>\n  ${orgs?`<tr><td style=\"padding-top:4px;\">${orgs}<\/td><\/tr>`:''}\n  ${soc?`<tr><td style=\"padding-top:11px;\">${soc}<\/td><\/tr>`:''}\n  ${cts.length||D.show.email&&D.email?`<tr><td style=\"font-size:11px;color:#5c6470;padding-top:10px;\">\n  ${D.show.email&&D.email?`<a href=\"mailto:${esc(D.email)}\" style=\"color:#5c6470;text-decoration:none;\">${esc(D.email)}<\/a>`:''}\n  ${cts.length?'<span style=\"color:#c3c8d4;\">&nbsp;|&nbsp;<\/span>'+cts.join('<span style=\"color:#c3c8d4;\">&nbsp;|&nbsp;<\/span>'):''}\n  <\/td><\/tr>`:''}\n  <\/table><\/td><\/tr><\/table>`;\n}}\n];\n\n// universal text version — same details, links kept, images left out\nfunction buildTextVersion(){\n  const A=pal();\n  const orgs=orgParts(DATA).map(p=>p.link?`<a href=\"${esc(p.link)}\" target=\"_blank\" rel=\"noopener\" style=\"color:#5c6470;text-decoration:none;\">${esc(p.name)}<\/a>`:esc(p.name)).join(' · ');\n  const cts=contactParts(DATA,'#5c6470').join('<span style=\"color:#b8bed6;\"> &nbsp;|&nbsp; <\/span>');\n  const links=socialTextLinks(A.dark);\n  return `<table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"font-family:Arial,Helvetica,sans-serif;line-height:1.6;\">\n  <tr><td style=\"font-size:15px;font-weight:bold;color:#1a1a2e;\">${nm(DATA)}<\/td><\/tr>\n  ${DATA.caption?`<tr><td style=\"font-size:12px;color:${A.dark};font-weight:600;padding-top:1px;\">${esc(DATA.caption)}<\/td><\/tr>`:''}\n  ${DATA.show.tagline&&DATA.tagline?`<tr><td style=\"font-size:12px;color:#5c6470;font-style:italic;\">&ldquo;${esc(DATA.tagline)}&rdquo;<\/td><\/tr>`:''}\n  ${orgs?`<tr><td style=\"font-size:12px;color:#5c6470;padding-top:2px;\">${orgs}<\/td><\/tr>`:''}\n  ${cts?`<tr><td style=\"font-size:12px;color:#3d405b;padding-top:3px;\">${cts}<\/td><\/tr>`:''}\n  ${links?`<tr><td style=\"font-size:12px;padding-top:6px;\">${links}<\/td><\/tr>`:''}\n  <\/table>`;\n}\nfunction plainSig(D){\n  const L=[];\n  if(D.name)L.push(D.name);\n  if(D.caption)L.push(D.caption);\n  const orgs=orgParts(D).map(p=>p.name);\n  if(orgs.length)L.push(orgs.join(' · '));\n  orgParts(D).forEach(p=>{if(p.link)L.push((p.name||'Website')+' website: '+p.link);});\n  if(D.show.location&&D.location)L.push(D.location);\n  if(D.show.phone&&D.phone)L.push('Phone: '+D.phone);\n  if(D.show.email&&D.email)L.push('Email: '+D.email);\n  activeLinks().forEach(l=>L.push(l.label+': '+l.url));\n  if(D.show.tagline&&D.tagline)L.push('“'+D.tagline+'”');\n  return L.join('\\n');\n}\n\n// ══════════ CONFIG PANEL ══════════\nconst SV={\n user:'<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21c0-4 3.6-6 8-6s8 2 8 6\"/><\/svg>',\n images:'<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"3\"/><circle cx=\"9\" cy=\"9\" r=\"2\"/><path d=\"m21 15-4.4-4.4a1.7 1.7 0 0 0-2.4 0L5 19\"/><\/svg>',\n share:'<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"6\" cy=\"12\" r=\"2.5\"/><circle cx=\"18\" cy=\"6\" r=\"2.5\"/><circle cx=\"18\" cy=\"18\" r=\"2.5\"/><path d=\"m8.2 10.9 7.6-3.8M8.2 13.1l7.6 3.8\"/><\/svg>',\n palette:'<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"13.5\" cy=\"6.5\" r=\".8\"/><circle cx=\"17.5\" cy=\"10.5\" r=\".8\"/><circle cx=\"8.5\" cy=\"7.5\" r=\".8\"/><circle cx=\"6.5\" cy=\"12.5\" r=\".8\"/><path d=\"M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 1.8 1.8 0 0 0 1.3-3 1.8 1.8 0 0 1 1.3-3h2.2A5.2 5.2 0 0 0 22 10.8C22 5.9 17.5 2 12 2z\"/><\/svg>',\n sliders:'<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6\"/><\/svg>',\n upload:'<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 16V4m0 0-4 4m4-4 4 4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2\"/><\/svg>',\n crop:'<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M7 2v15h15M2 7h15v15\"/><\/svg>',\n x:'<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M6 6l12 12M18 6L6 18\"/><\/svg>',\n up:'<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 14 6-6 6 6\"/><\/svg>',\n down:'<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 10 6 6 6-6\"/><\/svg>',\n grip:'<svg viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><circle cx=\"9\" cy=\"5\" r=\"1.6\"/><circle cx=\"15\" cy=\"5\" r=\"1.6\"/><circle cx=\"9\" cy=\"12\" r=\"1.6\"/><circle cx=\"15\" cy=\"12\" r=\"1.6\"/><circle cx=\"9\" cy=\"19\" r=\"1.6\"/><circle cx=\"15\" cy=\"19\" r=\"1.6\"/><\/svg>',\n info:'<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 8h.01M12 11v5\"/><\/svg>',\n clipboard:'<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"8\" y=\"3\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2\"/><\/svg>',\n text:'<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 7h16M4 12h16M4 17h10\"/><\/svg>',\n check:'<svg viewBox=\"0 0 24 24\" width=\"13\" height=\"13\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 13l4 4L19 7\"/><\/svg>'\n};\nconst PRESETS=[\n  ['Amethyst & Amber','#6d28d9','#b45309'],\n  ['Navy & Gold','#1b3a5c','#c9a227'],\n  ['Graphite & Sky','#2f3640','#4a90d9'],\n  ['Forest & Sand','#1e5b48','#cbb878'],\n  ['Burgundy & Blush','#6b2231','#d6977f'],\n  ['Ocean & Aqua','#0e5a7a','#39b0c4'],\n  ['Slate & Violet','#3d4654','#8b7fd6'],\n  ['Espresso & Caramel','#4a3527','#c08a54'],\n  ['Teal & Coral','#0f766e','#e98568'],\n  ['Carbon & Scarlet','#23262d','#d64541']\n];\nconst DETAIL_FIELDS=[\n  {k:'name',label:'Full name',ph:'Your full name'},\n  {k:'caption',label:'Caption / designation',ph:'e.g. MBA · Analyst · Designer'},\n  {k:'email',label:'Email',tog:'email',ph:'you@example.com'},\n  {k:'phone',label:'Phone',tog:'phone',ph:'+1 (555) 000-0000'},\n  {k:'location',label:'Location',tog:'location',ph:'City, Country'},\n  {k:'tagline',label:'Tagline (quote style)',tog:'tagline',ph:'A line you live by'}\n];\nfunction switchHTML(key,checked){\n  return `<label class=\"switch\"><input type=\"checkbox\" data-tog=\"${key}\" ${checked?'checked':''} aria-label=\"Toggle ${esc(key)}\"><span class=\"slider\"><\/span><\/label>`;\n}\nfunction detailFieldHTML(f){\n  const on=f.tog?DATA.show[f.tog]:true;\n  return `<div class=\"config-field${f.tog&&!on?' dim':''}\" data-field=\"${f.tog||f.k}\">\n    <div class=\"field-head\"><label for=\"in-${f.k}\">${esc(f.label)}<\/label>${f.tog?switchHTML(f.tog,on):''}<\/div>\n    <input type=\"text\" id=\"in-${f.k}\" data-key=\"${f.k}\" value=\"${esc(DATA[f.k])}\" placeholder=\"${esc(f.ph)}\" ${f.tog&&!on?'disabled':''}>\n  <\/div>`;\n}\nfunction photoFieldHTML(){\n  const on=DATA.show.photo;\n  return `<div class=\"config-field${on?'':' dim'}\" data-field=\"photo\">\n    <div class=\"field-head\"><label>Profile photo<\/label>${switchHTML('photo',on)}<\/div>\n    <div class=\"upload-row\">\n      <label class=\"btn-upload\">${SV.upload}&nbsp;Upload photo<input type=\"file\" accept=\"image/*\" data-upload=\"photo\" hidden><\/label>\n      <span class=\"up-thumb\" data-thumb=\"photo\"><\/span>\n      <button class=\"btn-recrop\" data-recrop=\"photo\" hidden title=\"Adjust crop\" aria-label=\"Adjust photo crop\">${SV.crop}<\/button>\n      <button class=\"btn-rem\" data-rem=\"photo\" hidden title=\"Remove\" aria-label=\"Remove photo\">${SV.x}<\/button>\n    <\/div>\n    <div class=\"up-note\">Crop to a tidy rectangle — corners stay softly rounded in every design. No photo? An initials tile appears instead.<\/div>\n  <\/div>`;\n}\nfunction orgFieldHTML(f){\n  const on=DATA.show[f.tog];\n  return `<div class=\"config-field${on?'':' dim'}\" data-field=\"${f.tog}\">\n    <div class=\"field-head\"><label for=\"in-${f.k}\">${esc(f.label)}<\/label>${switchHTML(f.tog,on)}<\/div>\n    <input type=\"text\" id=\"in-${f.k}\" data-key=\"${f.k}\" value=\"${esc(DATA[f.k])}\" placeholder=\"${esc(f.ph)}\" ${on?'':'disabled'}>\n    <div style=\"height:8px;\"><\/div>\n    <input type=\"url\" data-key=\"${f.lk}\" value=\"${esc(DATA[f.lk])}\" placeholder=\"${esc(f.lph)}\" ${on?'':'disabled'} aria-label=\"${esc(f.label)} website\">\n    <div class=\"upload-row\">\n      <label class=\"btn-upload\">${SV.upload}&nbsp;Upload logo<input type=\"file\" accept=\"image/*\" data-upload=\"${f.upload}\" hidden><\/label>\n      <span class=\"up-thumb\" data-thumb=\"${f.upload}\"><\/span>\n      <button class=\"btn-recrop\" data-recrop=\"${f.upload}\" hidden title=\"Adjust crop\" aria-label=\"Adjust logo crop\">${SV.crop}<\/button>\n      <button class=\"btn-rem\" data-rem=\"${f.upload}\" hidden title=\"Remove\" aria-label=\"Remove logo\">${SV.x}<\/button>\n    <\/div>\n    <div class=\"up-note\">${esc(f.note)}<\/div>\n  <\/div>`;\n}\nfunction linksConfigHTML(){\n  return `<div class=\"links-box\" id=\"links-box\">`+ORDER.map(k=>{\n    const def=LINKS.find(l=>l.key===k);\n    const on=DATA.show[k];\n    return `<div class=\"link-row${on?'':' dim'}\" data-key=\"${k}\">\n      <button class=\"lr-handle\" type=\"button\" title=\"Drag to reorder\" aria-label=\"Drag to reorder ${esc(def.label)}\">${SV.grip}<\/button>\n      ${switchHTML(k,on)}\n      <span class=\"lr-ic\"><img src=\"${brandPng(k,20)}\" alt=\"\"><\/span>\n      <span class=\"lr-lab\">${esc(def.label)}<\/span>\n      <input class=\"lr-url\" data-lkey=\"${k}\" value=\"${esc(DATA.links[k])}\" placeholder=\"${esc(def.ph)}\" ${on?'':'disabled'} aria-label=\"${esc(def.label)} link\">\n      <button class=\"lr-btn\" type=\"button\" data-up=\"${k}\" title=\"Move up\" aria-label=\"Move ${esc(def.label)} up\">${SV.up}<\/button>\n      <button class=\"lr-btn\" type=\"button\" data-down=\"${k}\" title=\"Move down\" aria-label=\"Move ${esc(def.label)} down\">${SV.down}<\/button>\n    <\/div>`;\n  }).join('')+`<\/div>\n  <div class=\"links-hint\">${SV.info}<span>This order is the order in your signature — professional links lead by default (portfolio, then LinkedIn, then the rest). Drag the handle or use the arrows.<\/span><\/div>`;\n}\nfunction schemeConfigHTML(){\n  return `<div class=\"scheme-box\">\n    <div>\n      <div class=\"sw-row\" id=\"sw-row\"><\/div>\n      <div class=\"scheme-note\" style=\"margin-top:5px;\">Colours picked up from your uploaded images appear here — click a swatch to make it primary.<\/div>\n    <\/div>\n    <div class=\"preset-grid\">${PRESETS.map((p,i)=>`<button type=\"button\" class=\"preset-chip\" data-preset=\"${i}\"><span class=\"preset-dots\"><i style=\"background:${p[1]}\"><\/i><i style=\"background:${p[2]}\"><\/i><\/span>${p[0]}<\/button>`).join('')}<\/div>\n    <div class=\"custom-colors\">\n      <span class=\"cc-pick\">Primary <input type=\"color\" data-color=\"pri\" value=\"${SCHEME.pri}\"><span class=\"cc-hex\" data-color=\"pri\">${SCHEME.pri.toUpperCase()}<\/span><\/span>\n      <span class=\"cc-pick\">Accent <input type=\"color\" data-color=\"acc\" value=\"${SCHEME.acc}\"><span class=\"cc-hex\" data-color=\"acc\">${SCHEME.acc.toUpperCase()}<\/span><\/span>\n    <\/div>\n  <\/div>`;\n}\nfunction iconStyleHTML(){\n  return `<div class=\"icon-style-row\">\n    <span class=\"isl\">Shape<\/span>\n    <div class=\"seg\" data-seg=\"shape\">\n      <button type=\"button\" data-v=\"rounded\" class=\"${ICONS.shape==='rounded'?'on':''}\">Rounded square<\/button>\n      <button type=\"button\" data-v=\"circle\" class=\"${ICONS.shape==='circle'?'on':''}\">Circle<\/button>\n    <\/div>\n    <span class=\"isl\">Icon size<\/span>\n    <div class=\"seg\" data-seg=\"size\">\n      <button type=\"button\" data-v=\"22\" class=\"${ICONS.size===22?'on':''}\">Compact<\/button>\n      <button type=\"button\" data-v=\"26\" class=\"${ICONS.size===26?'on':''}\">Standard<\/button>\n      <button type=\"button\" data-v=\"30\" class=\"${ICONS.size===30?'on':''}\">Large<\/button>\n    <\/div>\n  <\/div>\n  <div class=\"icon-style-row\" style=\"margin-top:12px;\">\n    <span class=\"isl\">Photo size<\/span>\n    <div class=\"seg\" data-seg=\"photo\">\n      <button type=\"button\" data-v=\"64\" class=\"${PHOTOS.size===64?'on':''}\">Compact<\/button>\n      <button type=\"button\" data-v=\"84\" class=\"${PHOTOS.size===84?'on':''}\">Standard<\/button>\n      <button type=\"button\" data-v=\"104\" class=\"${PHOTOS.size===104?'on':''}\">Large<\/button>\n    <\/div>\n    <span class=\"isl\">Logo size<\/span>\n    <div class=\"seg\" data-seg=\"logo\">\n      <button type=\"button\" data-v=\"44\" class=\"${LOGOS.h===44?'on':''}\">Compact<\/button>\n      <button type=\"button\" data-v=\"54\" class=\"${LOGOS.h===54?'on':''}\">Standard<\/button>\n      <button type=\"button\" data-v=\"66\" class=\"${LOGOS.h===66?'on':''}\">Large<\/button>\n    <\/div>\n  <\/div>`;\n}\nfunction group(icon,title,inner){return `<div class=\"config-group\"><div class=\"group-title\">${SV[icon]} ${title}<\/div>${inner}<\/div>`;}\nfunction buildConfig(){\n  const root=document.getElementById('config-root');\n  root.innerHTML=\n    group('user','Your details',`<div class=\"config-grid\">${DETAIL_FIELDS.map(detailFieldHTML).join('')}<\/div>`)+\n    group('images','Photo &amp; organizations',`<div class=\"config-grid\">\n      ${photoFieldHTML()}\n      ${orgFieldHTML({k:'company',tog:'company',label:'Company',upload:'companyLogo',lk:'companyLink',lph:'Company website — opens from the logo and name',ph:'Company name',note:'The logo sits clearly visible in every design and lends its colours to the palette — add the website and both the logo and the name open it.'})}\n      ${orgFieldHTML({k:'college',tog:'school',label:'School / college',upload:'schoolLogo',lk:'collegeLink',lph:'Institution website — opens from the crest and name',ph:'Institution name',note:'Add the crest or logo — it renders large, matches your scheme, and the website link opens from both the crest and the name.'})}\n    <\/div>`)+\n    group('share','Links &amp; social — in your order',`<div id=\"links-wrap\">${linksConfigHTML()}<\/div>`)+\n    group('palette','Colour scheme',schemeConfigHTML())+\n    group('sliders','Icons &amp; image sizes',iconStyleHTML());\n  syncUploads();\n  renderSwatchRow();\n  syncSchemeUI();\n}\nfunction refreshLinksWrap(){\n  const w=document.getElementById('links-wrap');\n  if(w)w.innerHTML=linksConfigHTML();\n}\nfunction syncToggleUI(key,val){\n  const sw=document.querySelector(`input[data-tog=\"${key}\"]`);\n  if(sw){\n    sw.checked=val;\n    const f=sw.closest('.config-field,.link-row');\n    if(f){\n      f.classList.toggle('dim',!val);\n      f.querySelectorAll('input[data-key],input[data-lkey]').forEach(inp=>inp.disabled=!val);\n    }\n  }\n}\nfunction syncUploads(){\n  ['photo','companyLogo','schoolLogo'].forEach(k=>{\n    const th=document.querySelector(`[data-thumb=\"${k}\"]`);\n    const rem=document.querySelector(`[data-rem=\"${k}\"]`);\n    const rec=document.querySelector(`[data-recrop=\"${k}\"]`);\n    const a=ASSETS[k];\n    if(th)th.innerHTML=a?`<img src=\"${a.src}\" alt=\"\">`:'';\n    if(rem)rem.hidden=!a;\n    if(rec)rec.hidden=!a;\n  });\n}\nfunction renderSwatchRow(){\n  const row=document.getElementById('sw-row');\n  if(!row)return;\n  row.innerHTML=SWATCHES.length\n    ? SWATCHES.map(h=>`<button type=\"button\" class=\"sw-btn\" data-swatch=\"${h}\" data-hex=\"${h}\" title=\"Use ${h} as the primary colour\" style=\"background:${h}\" aria-label=\"Use colour ${h}\"><\/button>`).join('')+'<span class=\"sw-label\">from your images<\/span>'\n    : '<span class=\"sw-empty\">No image colours yet — upload a logo or a photo and its colours appear here.<\/span>';\n  syncSchemeUI();\n}\n\n// ─── config events (delegated — survives the reordered link rows) ───\nfunction bindConfig(){\n  const root=document.getElementById('config-root');\n  root.addEventListener('input',e=>{\n    const t=e.target;\n    if(t.dataset.key){DATA[t.dataset.key]=t.value.trim();scheduleRender();}\n    else if(t.dataset.lkey){DATA.links[t.dataset.lkey]=t.value.trim();scheduleRender();}\n    else if(t.dataset.color){\n      const isPri=t.dataset.color==='pri';\n      applyScheme(isPri?t.value:SCHEME.pri,isPri?SCHEME.acc:t.value,'Custom',false);\n    }\n  });\n  root.addEventListener('change',e=>{\n    const t=e.target;\n    if(t.dataset.tog){\n      DATA.show[t.dataset.tog]=t.checked;\n      const wrap=t.closest('.config-field,.link-row');\n      if(wrap){\n        wrap.classList.toggle('dim',!t.checked);\n        wrap.querySelectorAll('input[data-key],input[data-lkey]').forEach(inp=>inp.disabled=!t.checked);\n      }\n      scheduleRender();\n    }else if(t.dataset.upload&&t.files&&t.files[0]){\n      readUpload(t.files[0],t.dataset.upload);\n      t.value='';\n    }\n  });\n  root.addEventListener('click',e=>{\n    const btn=e.target.closest('button');\n    if(!btn)return;\n    if(btn.dataset.up)moveLink(btn.dataset.up,-1);\n    else if(btn.dataset.down)moveLink(btn.dataset.down,1);\n    else if(btn.dataset.rem)clearUpload(btn.dataset.rem);\n    else if(btn.dataset.recrop)reCrop(btn.dataset.recrop);\n    else if(btn.dataset.swatch)applySwatch(btn.dataset.swatch);\n    else if(btn.dataset.preset!=null&&btn.dataset.preset!==''){\n      const p=PRESETS[+btn.dataset.preset];\n      if(p)applyScheme(p[1],p[2],p[0],false);\n    }else{\n      const seg=btn.closest('.seg');\n      if(seg){\n        if(seg.dataset.seg==='shape')ICONS.shape=btn.dataset.v;\n        else if(seg.dataset.seg==='size')ICONS.size=+btn.dataset.v;\n        else if(seg.dataset.seg==='photo')PHOTOS.size=+btn.dataset.v;\n        else if(seg.dataset.seg==='logo')LOGOS.h=+btn.dataset.v;\n        seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===btn));\n        scheduleRender();\n      }\n    }\n  });\n  // drag-to-reorder (handle activates dragging)\n  let dragKey=null;\n  root.addEventListener('mousedown',e=>{\n    const h=e.target.closest('.lr-handle');\n    if(h){const row=h.closest('.link-row');if(row)row.draggable=true;}\n  });\n  root.addEventListener('dragstart',e=>{\n    const row=e.target.closest('.link-row');\n    if(!row||row.draggable!==true){e.preventDefault();return;}\n    dragKey=row.dataset.key;\n    row.classList.add('dragging');\n    e.dataTransfer.effectAllowed='move';\n    try{e.dataTransfer.setData('text/plain',dragKey);}catch(_){}\n  });\n  root.addEventListener('dragover',e=>{\n    if(!dragKey)return;\n    e.preventDefault();\n    const row=e.target.closest('.link-row');\n    root.querySelectorAll('.link-row').forEach(r=>r.classList.remove('drop-hint'));\n    if(row&&row.dataset.key!==dragKey)row.classList.add('drop-hint');\n  });\n  root.addEventListener('drop',e=>{\n    if(!dragKey)return;\n    e.preventDefault();\n    const row=e.target.closest('.link-row');\n    if(row&&row.dataset.key!==dragKey){\n      const target=row.dataset.key;\n      ORDER=ORDER.filter(k=>k!==dragKey);\n      ORDER.splice(ORDER.indexOf(target),0,dragKey);\n      refreshLinksWrap();\n      scheduleRender();\n      toast('Link order updated');\n    }\n    dragKey=null;\n  });\n  root.addEventListener('dragend',()=>{\n    dragKey=null;\n    root.querySelectorAll('.link-row').forEach(r=>{r.draggable=false;r.classList.remove('dragging','drop-hint');});\n  });\n}\nfunction moveLink(key,dir){\n  const i=ORDER.indexOf(key),n=i+dir;\n  if(i<0||n<0||n>=ORDER.length)return;\n  ORDER.splice(n,0,ORDER.splice(i,1)[0]);\n  refreshLinksWrap();\n  scheduleRender();\n}\n\n// ─── uploads + crop ───\nfunction readUpload(file,slot){\n  const r=new FileReader();\n  r.onload=()=>{\n    const img=new Image();\n    img.onload=()=>openCrop(r.result,img,slot);\n    img.onerror=()=>toast('That file could not be read as an image',false);\n    img.src=r.result;\n  };\n  r.readAsDataURL(file);\n}\nconst CROP={img:null,url:'',slot:'',aspect:'4:5',fw:300,fh:375,scale:1,minScale:1,ox:0,oy:0};\nconst ASPECTS=[['1:1',1],['4:5',0.8],['3:4',0.75],['16:9',16/9],['orig',0]];\nfunction openCrop(url,img,slot){\n  CROP.img=img;CROP.url=url;CROP.slot=slot;\n  CROP.aspect=slot==='photo'?'4:5':'orig';\n  document.getElementById('crop-title').textContent=slot==='photo'?'Crop your photo':slot==='companyLogo'?'Crop the company logo':'Crop the institution logo';\n  document.getElementById('crop-img').src=url;\n  document.querySelectorAll('.aspect-chip').forEach(c=>c.classList.toggle('on',c.dataset.aspect===CROP.aspect));\n  applyAspect();\n  document.getElementById('crop-veil').classList.add('open');\n}\nfunction applyAspect(){\n  const img=CROP.img;if(!img)return;\n  const ar=(ASPECTS.find(a=>a[0]===CROP.aspect)||ASPECTS[1])[1];\n  const base=window.innerWidth<640?262:300;\n  if(ar===0){\n    const r=img.width/img.height;\n    if(r>=1){CROP.fw=base;CROP.fh=Math.max(90,Math.round(base/r));}\n    else{CROP.fh=Math.round(base*1.25);CROP.fw=Math.max(90,Math.round(CROP.fh*r));}\n  }else if(ar>=1){CROP.fw=base;CROP.fh=Math.round(base/ar);}\n  else{CROP.fh=Math.round(base*1.25);CROP.fw=Math.round(CROP.fh*ar);}\n  const stage=document.getElementById('crop-stage');\n  stage.style.width=CROP.fw+'px';stage.style.height=CROP.fh+'px';\n  CROP.minScale=Math.max(CROP.fw/img.width,CROP.fh/img.height);\n  CROP.scale=CROP.minScale;\n  document.getElementById('crop-zoom').value=100;\n  CROP.ox=(CROP.fw-img.width*CROP.scale)/2;\n  CROP.oy=(CROP.fh-img.height*CROP.scale)/2;\n  clampCrop();paintCrop();\n}\nfunction clampCrop(){\n  const img=CROP.img;if(!img)return;\n  const w=img.width*CROP.scale,h=img.height*CROP.scale;\n  CROP.ox=Math.min(0,Math.max(CROP.fw-w,CROP.ox));\n  CROP.oy=Math.min(0,Math.max(CROP.fh-h,CROP.oy));\n}\nfunction paintCrop(){\n  const im=document.getElementById('crop-img');\n  im.style.width=(CROP.img.width*CROP.scale)+'px';\n  im.style.height=(CROP.img.height*CROP.scale)+'px';\n  im.style.left=CROP.ox+'px';\n  im.style.top=CROP.oy+'px';\n  document.getElementById('crop-zoom-val').textContent=Math.round(CROP.scale/CROP.minScale*100)+'%';\n}\nfunction setZoom(v){\n  if(!CROP.img)return;\n  const cx=(CROP.fw/2-CROP.ox)/CROP.scale,cy=(CROP.fh/2-CROP.oy)/CROP.scale;\n  CROP.scale=CROP.minScale*(v/100);\n  CROP.ox=CROP.fw/2-cx*CROP.scale;\n  CROP.oy=CROP.fh/2-cy*CROP.scale;\n  clampCrop();paintCrop();\n}\nfunction applyCrop(){\n  const img=CROP.img;if(!img)return;\n  const sx=Math.max(0,-CROP.ox/CROP.scale),sy=Math.max(0,-CROP.oy/CROP.scale);\n  const sw=CROP.fw/CROP.scale,sh=CROP.fh/CROP.scale;\n  const cap=CROP.slot==='photo'?520:760;\n  let ow=Math.round(sw),oh=Math.round(sh);\n  const k=Math.min(1,cap/Math.max(ow,oh));\n  ow=Math.max(1,Math.round(ow*k));oh=Math.max(1,Math.round(oh*k));\n  const c=document.createElement('canvas');c.width=ow;c.height=oh;\n  const x=c.getContext('2d');\n  if(CROP.slot==='photo'){x.fillStyle='#ffffff';x.fillRect(0,0,ow,oh);}\n  x.drawImage(img,sx,sy,sw,sh,0,0,ow,oh);\n  finishAsset(CROP.slot,{src:c.toDataURL(CROP.slot==='photo'?'image/jpeg':'image/png',0.92),w:ow,h:oh});\n  closeCrop();\n}\nfunction useOriginal(){\n  const img=CROP.img;if(!img)return;\n  let ow=img.width,oh=img.height;\n  const cap=900,k=Math.min(1,cap/Math.max(ow,oh));\n  if(k<1){\n    ow=Math.max(1,Math.round(ow*k));oh=Math.max(1,Math.round(oh*k));\n    const c=document.createElement('canvas');c.width=ow;c.height=oh;\n    c.getContext('2d').drawImage(img,0,0,ow,oh);\n    finishAsset(CROP.slot,{src:c.toDataURL('image/png'),w:ow,h:oh});\n  }else{\n    finishAsset(CROP.slot,{src:CROP.url,w:img.width,h:img.height});\n  }\n  closeCrop();\n}\nfunction reCrop(slot){\n  const a=ASSETS[slot];if(!a)return;\n  const img=new Image();\n  img.onload=()=>openCrop(a.src,img,slot);\n  img.src=a.src;\n}\nfunction closeCrop(){\n  document.getElementById('crop-veil').classList.remove('open');\n  CROP.img=null;\n}\nfunction finishAsset(slot,asset){\n  ASSETS[slot]=asset;\n  if(slot==='photo'){DATA.show.photo=true;syncToggleUI('photo',true);toast('Photo added to every design');}\n  if(slot==='companyLogo'){DATA.show.company=true;syncToggleUI('company',true);}\n  if(slot==='schoolLogo'){DATA.show.school=true;syncToggleUI('school',true);}\n  syncUploads();\n  if(slot!=='photo'){\n    extractSwatches(asset.src,sw=>{\n      SWATCHES=sw;\n      renderSwatchRow();\n      if(sw.length){\n        applyScheme(sw[0],sw.length>1?sw[1]:deriveAccent(sw[0]),'From your image',true);\n        toast('Colours from your image applied — fine-tune any time');\n      }else{\n        toast('Image added — no strong colours found, pick a scheme below');\n      }\n    });\n  }\n  scheduleRender();\n}\nfunction clearUpload(slot){\n  ASSETS[slot]=null;\n  syncUploads();\n  scheduleRender();\n  toast(slot==='photo'?'Photo removed — back to the initials tile':'Logo removed',false);\n}\nfunction applySwatch(hex){\n  const other=SWATCHES.find(h=>h.toLowerCase()!==hex.toLowerCase());\n  applyScheme(hex,other||deriveAccent(hex),'From your image',true);\n}\nfunction bindModal(){\n  const veil=document.getElementById('crop-veil');\n  const stage=document.getElementById('crop-stage');\n  document.getElementById('aspect-chips').innerHTML=ASPECTS.map(a=>`<button type=\"button\" class=\"aspect-chip\" data-aspect=\"${a[0]}\">${a[0]==='orig'?'Original':a[0]}<\/button>`).join('');\n  document.getElementById('crop-close').addEventListener('click',closeCrop);\n  document.getElementById('crop-cancel').addEventListener('click',closeCrop);\n  document.getElementById('crop-apply').addEventListener('click',applyCrop);\n  document.getElementById('crop-original').addEventListener('click',useOriginal);\n  document.getElementById('crop-zoom').addEventListener('input',e=>setZoom(+e.target.value));\n  document.getElementById('aspect-chips').addEventListener('click',e=>{\n    const b=e.target.closest('.aspect-chip');\n    if(!b||!CROP.img)return;\n    CROP.aspect=b.dataset.aspect;\n    document.querySelectorAll('.aspect-chip').forEach(c=>c.classList.toggle('on',c===b));\n    applyAspect();\n  });\n  veil.addEventListener('pointerdown',e=>{if(e.target===veil)closeCrop();});\n  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&veil.classList.contains('open'))closeCrop();});\n  stage.addEventListener('pointerdown',e=>{\n    if(!CROP.img)return;\n    e.preventDefault();\n    try{stage.setPointerCapture(e.pointerId);}catch(_){}\n    const sx=e.clientX-CROP.ox,sy=e.clientY-CROP.oy;\n    const move=ev=>{CROP.ox=ev.clientX-sx;CROP.oy=ev.clientY-sy;clampCrop();paintCrop();};\n    const up=()=>{stage.removeEventListener('pointermove',move);stage.removeEventListener('pointerup',up);stage.removeEventListener('pointercancel',up);};\n    stage.addEventListener('pointermove',move);\n    stage.addEventListener('pointerup',up);\n    stage.addEventListener('pointercancel',up);\n  });\n  stage.addEventListener('wheel',e=>{\n    if(!CROP.img)return;\n    e.preventDefault();\n    const cur=Math.round(CROP.scale/CROP.minScale*100);\n    const nxt=Math.max(100,Math.min(800,Math.round(cur*(e.deltaY<0?1.08:1/1.08))));\n    document.getElementById('crop-zoom').value=nxt;\n    setZoom(nxt);\n  },{passive:false});\n}\n\n// ══════════ GALLERY ══════════\nfunction buildCards(){\n  const grid=document.getElementById('sig-grid');\n  grid.innerHTML=SIGNATURES.map(s=>`\n    <div class=\"sig-card\" data-id=\"${s.id}\">\n      <div class=\"sig-head\">\n        <div><div class=\"sig-title\">${s.title}<\/div><div class=\"sig-desc\">${s.desc}<\/div><\/div>\n        <span class=\"sig-chip\">${s.tag}<\/span>\n      <\/div>\n      <div class=\"sig-preview\" id=\"prev-${s.id}\"><\/div>\n      <div class=\"sig-actions\">\n        <button type=\"button\" class=\"btn-copy\" data-copy=\"${s.id}\">${SV.clipboard}&nbsp;Copy Signature<\/button>\n        <button type=\"button\" class=\"btn-ghost\" data-text=\"${s.id}\">${SV.text}&nbsp;Text version<\/button>\n      <\/div>\n    <\/div>`).join('');\n}\nfunction bindGrid(){\n  document.getElementById('sig-grid').addEventListener('click',e=>{\n    const b=e.target.closest('button');\n    if(!b)return;\n    if(b.dataset.copy)copySig(b.dataset.copy,'full',b);\n    else if(b.dataset.text)copySig(b.dataset.text,'text',b);\n  });\n}\nfunction renderPreviews(){\n  SIGNATURES.forEach(s=>{\n    const el=document.getElementById('prev-'+s.id);\n    if(el)el.innerHTML=s.build(DATA);\n  });\n}\nlet renderT=null;\nfunction scheduleRender(){\n  clearTimeout(renderT);\n  renderT=setTimeout(renderPreviews,110);\n}\n\n// ══════════ COPY — icons, images and links all travel together ══════════\nfunction fallbackCopyRich(html){\n  try{\n    const d=document.createElement('div');\n    d.setAttribute('contenteditable','true');\n    d.style.cssText='position:fixed;left:-9999px;top:0;opacity:0;';\n    d.innerHTML=html;\n    document.body.appendChild(d);\n    const r=document.createRange();\n    r.selectNodeContents(d);\n    const sel=window.getSelection();\n    sel.removeAllRanges();sel.addRange(r);\n    const ok=document.execCommand('copy');\n    sel.removeAllRanges();d.remove();\n    return ok;\n  }catch(e){return false;}\n}\nasync function copySig(id,mode,btn){\n  const s=SIGNATURES.find(x=>x.id===id);\n  if(!s)return;\n  const html=mode==='full'?s.build(DATA):buildTextVersion();\n  const plain=plainSig(DATA);\n  let ok=false;\n  try{\n    if(!navigator.clipboard||!window.ClipboardItem)throw new Error('no clipboard');\n    await navigator.clipboard.write([new ClipboardItem({\n      'text/html':new Blob([html],{type:'text/html'}),\n      'text/plain':new Blob([plain],{type:'text/plain'})\n    })]);\n    ok=true;\n  }catch(err){ok=fallbackCopyRich(html);}\n  if(btn){\n    const orig=btn.innerHTML;\n    btn.innerHTML=(ok?SV.check:SV.x)+(mode==='full'?'&nbsp;Copied!':'&nbsp;Copied!');\n    if(ok)btn.classList.add('copied');\n    setTimeout(()=>{btn.innerHTML=orig;btn.classList.remove('copied');},1900);\n  }\n  toast(ok\n    ?(mode==='full'?'Signature copied — icons, images and their links included. Paste with Ctrl/Cmd + V':'Text version copied — details and links included')\n    :'Copy blocked by the browser — please try again',ok);\n}\n\n// ══════════ TOAST ══════════\nlet toastTimer=null;\nfunction toast(msg,ok){\n  if(ok===undefined)ok=true;\n  const t=document.getElementById('toast');\n  if(!t)return;\n  t.classList.toggle('err',!ok);\n  document.getElementById('toast-msg').textContent=msg;\n  t.classList.add('show');\n  clearTimeout(toastTimer);\n  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);\n}\nwindow.toast=toast;\n\n// ══════════ THEME ══════════\nlet currentTheme='light';\ntry{currentTheme=localStorage.getItem('sig-theme')||'light';}catch(e){}\nfunction applyTheme(t){\n  currentTheme=t;\n  document.documentElement.setAttribute('data-theme',t);\n  try{localStorage.setItem('sig-theme',t);}catch(e){}\n  const m=document.getElementById('ic-moon'),s=document.getElementById('ic-sun');\n  if(m)m.style.display=t==='dark'?'none':'block';\n  if(s)s.style.display=t==='dark'?'block':'none';\n}\nwindow.toggleTheme=()=>applyTheme(currentTheme==='dark'?'light':'dark');\n\n// ══════════ RESET + INIT ══════════\nwindow.resetConfig=function(){\n  freshState();\n  buildConfig();\n  renderPreviews();\n  toast('Reset to defaults');\n};\ndocument.addEventListener('DOMContentLoaded',()=>{\n  applyTheme(currentTheme);\n  buildConfig();\n  bindConfig();\n  bindModal();\n  buildCards();\n  bindGrid();\n  renderPreviews();\n});\n\n})();\n<\/script>\n<\/html>\n\n\n\n";
+
+/* player chrome logos (inline — no file loads) */
+const LOGO_SQ = "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Cdefs%3E%3ClinearGradient%20id='g'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%237c3aed'/%3E%3Cstop%20offset='1'%20stop-color='%23d97706'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='url(%23g)'/%3E%3Crect%20x='11'%20y='17'%20width='42'%20height='30'%20rx='5'%20fill='none'%20stroke='%23fff'%20stroke-width='4'/%3E%3Cpath%20d='M13%2023l19%2013%2019-13'%20fill='none'%20stroke='%23fff'%20stroke-width='4'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E";
+const CREATOR_FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23b45309'/%3E%3Ctext x='32' y='41' font-family='Arial' font-size='24' font-weight='bold' fill='%23fff' text-anchor='middle'%3EMK%3C/text%3E%3C/svg%3E";
+const CREATOR_IMG = "https://avatars.githubusercontent.com/Magesh-Kanna-S";
+
+G('tbLogo').src = LOGO_SQ;
+document.querySelectorAll('.lgimg').forEach(im => { im.src = LOGO_SQ; });
+['creatorImg', 'pickAv'].forEach(id => {
+  const im = G(id); if (!im) return;
+  im.src = CREATOR_IMG;
+  im.onerror = function () { this.onerror = null; this.src = CREATOR_FALLBACK; };
+});
+
+/* ═════════ voice-over ═════════ */
+const VO = {
+  on: true, utt: null, _resolve: null,
+  say(text, cb) {
+    this.stop();
+    const done = () => { this._resolve = null; if (cb) cb(); };
+    const words = text.split(/\s+/).length;
+    const vs = (window.speechSynthesis && window.speechSynthesis.getVoices) ? window.speechSynthesis.getVoices() : [];
+    if (!this.on || !vs.length) {
+      const ms = Math.max(4200, words * 430 / SPEED);
+      timers.push(setTimeout(done, ms));
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.95 * SPEED; u.pitch = 1; u.volume = 0.85;
+    const pref = vs.find(v => v.name.indexOf('Google') === 0 && v.lang.indexOf('en') === 0) || vs.find(v => v.lang.indexOf('en') === 0);
+    if (pref) u.voice = pref;
+    this.utt = u;
+    let fin = false;
+    const wrap = () => { if (fin) return; fin = true; done(); };
+    u.onend = wrap; u.onerror = wrap;
+    this._resolve = wrap;
+    const guard = Math.max(6500, words * 650 / SPEED);
+    setTimeout(wrap, guard);
+    try { window.speechSynthesis.speak(u); }
+    catch (e) { timers.push(setTimeout(wrap, Math.max(4200, words * 430 / SPEED))); }
+  },
+  stop() {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (this._resolve) { const r = this._resolve; this._resolve = null; r(); }
+  }
+};
+
+/* ═════════ state ═════════ */
+let TOUR = null;          /* selected tour — set by the picker */
+let MODE = null;          /* 'quick' | 'full' */
+let FLAT = [];
+let idx = -1;
+let paused = false;
+let SPEED = 1;
+let runTok = 0;
+let timers = [];
+let clockStart = null;
+let replayTimer = null;
+const CC = { on: true };
+
+const wait = ms => new Promise(r => timers.push(setTimeout(r, ms)));
+function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+/* ═════════ tour data ═════════ */
+/* ───────────────────────── TOUR 1 · 5-MINUTE OVERVIEW ───────────────────────── */
+const TOUR_QUICK = [
+{ ch: 'Overview', stops: [
+  { type: 'intro', t: 'The 5-minute overview',
+    say: "Welcome to Email Signature Studio — the five-minute overview of the general-purpose signature builder from My Desktop Tech. One page, sixteen designs, and every element under your control. Let's see how a signature goes from blank to ready-to-paste." }
+]},
+{ ch: 'Home', stops: [
+  { sel: '#hero', t: 'One builder, sixteen designs',
+    say: "The home screen sums it up: sixteen signature designs driven by one unified system. Fill in your details once, and every design re-renders with your text, your images and your colour scheme — ready for professional, academic, corporate or personal mail alike.",
+    hl: [ { s: '.hero-badge', l: 'Email Signature Studio' }, { s: '.hero-stats', l: '16 designs · toggles · colour match · copy', t: 'g' } ] },
+  { sel: '#hero', t: 'Quick start',
+    say: "The quick-start card keeps it simple: edit your details in step one, toggle optional elements on or off, crop and upload your images, pick a colour scheme, arrange your links — then copy and paste into your mail client's signature box.",
+    hl: [ { s: '.compat-note', l: 'Quick start — the whole path in one line', t: 'y' } ] }
+]},
+{ ch: 'Your details', stops: [
+  { sel: '#customize', t: 'Fill once, update everywhere',
+    say: "Step one is your details. Name, a free-text caption for any designation — MBA, analyst, designer, anything you like — email, phone, location and an optional tagline. Every field updates all sixteen designs live as you type.",
+    hl: [ { s: '.config-field[data-field="name"]', l: 'Your name' }, { s: '.config-field[data-field="caption"]', l: 'Free-text caption — any designation', t: 'g' } ] },
+  { sel: '#customize', t: 'Links in your order',
+    say: "Nine channels, one list: portfolio, LinkedIn, GitHub, YouTube, Instagram, X, Facebook, WhatsApp and Telegram. Professional links lead by default, and you can reorder them any way you like — drag the handle or tap the arrows. Even addresses typed without the full prefix are understood automatically.",
+    hl: [ { s: '#links-box .link-row[data-key="portfolio"]', l: 'Portfolio first — by default' }, { s: '#links-box .link-row[data-key="linkedin"]', l: 'LinkedIn — second', t: 'g' }, { s: '.links-hint', l: 'Drag or arrow to reorder', t: 'y' } ] }
+]},
+{ ch: 'Images', stops: [
+  { sel: '#customize', t: 'Photo, crop & sizes',
+    say: "Your photo is rectangular with softly rounded corners — never circular — and it appears in every single design. Before it's added, a crop step lets you pick the shape, zoom and position. No photo yet? A tidy initials tile stands in instead. And photo and logo sizes each come in compact, standard and large, exactly like the icons.",
+    hl: [ { s: '.config-field[data-field="photo"]', l: 'On/off · upload · re-crop' }, { s: '.seg[data-seg="photo"]', l: 'Photo size — compact / standard / large', t: 'g' } ] },
+  { sel: '#customize', t: 'Company & institution',
+    say: "Company and school each take a name, a logo, and a website link. That link is special: it's embedded in both the logo image and the name text, so a click on either one opens the site. Logos also lend their colours to the palette automatically.",
+    hl: [ { s: '.config-field[data-field="company"]', l: 'Name + website link + logo' }, { s: '.config-field[data-field="school"]', l: 'Same three parts for your institution', t: 'y' } ] }
+]},
+{ ch: 'Colour & icons', stops: [
+  { sel: '#customize', t: 'Colour scheme',
+    say: "Ten curated colour presets cover classic pairings — Navy and Gold, Forest and Sand, Teal and Coral. Custom primary and accent pickers take any colours you like, and swatches picked up from your uploaded logos sit above them: click any swatch to make it primary. Every design follows the scheme instantly.",
+    hl: [ { s: '.preset-grid', l: '10 curated presets' }, { s: '.custom-colors', l: 'Custom primary + accent', t: 'g' } ] },
+  { sel: '#customize', t: 'Icon style',
+    say: "Social channels appear as official square brand marks — real images, not drawings — with each profile link embedded inside the icon itself. That is what lets the icons and their links survive the paste into Gmail, Outlook or Apple Mail. Rounded or circular, in three sizes.",
+    hl: [ { s: '.seg[data-seg="shape"]', l: 'Rounded square or circle' }, { s: '#links-box .lr-ic', l: 'Official square marks', t: 'y' } ] }
+]},
+{ ch: 'The designs', stops: [
+  { sel: '#gallery', t: 'Sixteen unified designs',
+    say: "Step two: the gallery. One unified system — no categories to worry about. Every design takes the same details, images and colours and reshapes them: classic rules, banners, business cards, dark premium, script, pills, one-liners and more. Your photo is in every one of them.",
+    hl: [ { s: '.sig-card[data-id="classic"]', l: 'Classic Rule' }, { s: '.sig-card[data-id="banner"]', l: 'Banner Header', t: 'g' }, { s: '.sig-card[data-id="darkexec"]', l: 'Dark Premium', t: 'y' } ] }
+]},
+{ ch: 'Copy & paste', stops: [
+  { sel: '#gallery', t: 'Two buttons per design',
+    say: "Each card keeps it simple. Copy Signature puts the whole thing on your clipboard — icons, images and their embedded links — ready to paste with Ctrl or Cmd plus V. The text version carries the same details with plain links, for apps that prefer plain text.",
+    hl: [ { s: '.sig-card[data-id="bizcard"] .sig-actions', l: 'Copy Signature · Text version', t: 'g' } ] },
+  { sel: '#howto', t: 'Paste into your mail client',
+    say: "Step three walks you through pasting into Gmail, Outlook and Apple Mail — with the exact settings path for each, and pro tips along the way. Send yourself a test email and you are done.",
+    hl: [ { s: '.howto-card', l: 'Gmail · Outlook · Apple Mail' }, { s: '.howto-card.tips', l: 'Pro tips', t: 'y' } ] }
+]},
+{ ch: 'Comfort', stops: [
+  { sel: '#gallery', t: 'Dark theme & phones', act: 'themeDark',
+    say: "Comfort is built in: a one-tap dark theme for the builder itself, and a layout that reflows completely on phones — the panel stacks, the gallery goes single-column, nothing is cut off. Your signature previews always stay on clean white, just like a real email body.",
+    hl: [ { s: '#theme-toggle', l: 'One-tap dark theme', t: 'y' } ] }
+]},
+{ ch: 'Outro', stops: [
+  { type: 'outro', t: 'One builder. Every design. Yours.',
+    say: "That is the whole picture in five minutes: your details, your images, your colours, your link order — sixteen designs that stay in sync, and a copy that keeps the icons and their links intact. Email Signature Studio — created and designed by Magesh Kanna S. Thank you for watching. For every option in detail, replay and choose the full walkthrough." }
+]}
+];
+
+/* ───────────────────────── TOUR 2 · FULL WALKTHROUGH ───────────────────────── */
+const TOUR_FULL = [
+{ ch: 'Welcome', stops: [
+  { type: 'intro', t: 'Welcome to the walkthrough',
+    say: "Welcome to Email Signature Studio, the general-purpose signature builder from My Desktop Tech. This tour plays the real application itself — every field, every toggle, every option and every design — including a live photo upload with the crop step, and a live logo upload whose colours re-theme the whole gallery. Let's begin at the top of the page." }
+]},
+{ ch: 'Home & quick start', stops: [
+  { sel: '#hero', t: 'One builder, sixteen designs',
+    say: "The hero says it all: sixteen signature designs driven by one unified system. Whether your mail is professional, academic, corporate or personal, the same builder shapes every design around your details — no categories, no starting over.",
+    hl: [ { s: '.hero-badge', l: 'Email Signature Studio' }, { s: '#hero h1', l: '16 designs · one unified system' }, { s: '.hero-stats', l: 'Designs · toggles · colour match · copy', t: 'g' } ] },
+  { sel: '#hero', t: 'Quick start card',
+    say: "The quick-start card compresses the whole path into one line: edit in step one, toggle what you want, crop and upload images, pick a colour scheme, arrange your links, then copy and paste. The tour follows exactly that route.",
+    hl: [ { s: '.compat-note', l: 'Quick start — the whole path in one line', t: 'y' } ] }
+]},
+{ ch: 'Step 1 · Your details', stops: [
+  { sel: '#customize', t: 'Fill your details',
+    say: "Step one. Your details start from a sample — make them yours and every preview below updates instantly. The caption is completely free text: MBA candidate, data analyst, designer, student, researcher — whatever you are, you simply type it.",
+    hl: [ { s: '.config-field[data-field="name"]', l: 'Your name' }, { s: '.config-field[data-field="caption"]', l: 'Free-text caption — any designation', t: 'g' } ] },
+  { sel: '#customize', t: 'Everything optional has a toggle',
+    say: "Every optional element carries its own on-off switch — email, phone, location, tagline, photo, company, school, and each of the nine link channels. Switch something off and it simply does not appear in any design. Nothing is locked in, and the sample data disappears the moment you refresh.",
+    hl: [ { s: '.config-field[data-field="phone"]', l: 'Phone — on / off' }, { s: '.config-field[data-field="location"]', l: 'Location — on / off', t: 'g' }, { s: '.config-field[data-field="tagline"]', l: 'Tagline — on / off', t: 'y' } ] }
+]},
+{ ch: 'Links & social', stops: [
+  { sel: '#customize', t: 'Nine channels, your order',
+    say: "The links group holds nine channels — portfolio, LinkedIn, GitHub, YouTube, Instagram, X, Facebook, WhatsApp and Telegram. The default order leads with your professional links: portfolio first, then LinkedIn, then the rest — and that order is exactly the order they appear in every signature.",
+    hl: [ { s: '#links-box .link-row[data-key="portfolio"]', l: 'Portfolio — leads by default' }, { s: '#links-box .link-row[data-key="linkedin"]', l: 'LinkedIn — second', t: 'g' } ] },
+  { sel: '#customize', t: 'Reorder & forgiving links',
+    say: "Reordering is manual and instant: drag the grip handle, or use the up and down arrows. And the fields are forgiving — type a bare address, or a plain WhatsApp number, or a Telegram handle, and it is recognised and completed automatically.",
+    hl: [ { s: '.lr-handle', l: 'Drag to reorder' }, { s: '.lr-btn', l: 'Or tap the arrows', t: 'y' }, { s: '.links-hint', l: 'Professional links lead by default' } ] }
+]},
+{ ch: 'Photo & crop', stops: [
+  { sel: '#customize', t: 'Profile photo — rectangular, softly rounded',
+    say: "The profile photo switch. Photos here are rectangular with minimal corner curvature — never circular — and once added they appear in all sixteen designs, not just a few. No photo at all? A tidy initials tile stands in, so the layout never breaks.",
+    hl: [ { s: '.config-field[data-field="photo"]', l: 'On / off · upload · re-crop' } ] },
+  { sel: '#customize', t: 'The crop step — live', act: 'uploadPhoto',
+    say: "Let's add a photo for real. Choosing a file opens the crop step: drag to position, zoom to fine-tune, and pick a shape — one to one, four to five, three to four, sixteen to nine, or the original frame. Non-square images get exactly the same treatment, which is usually where cropping matters most.",
+    hl: [] },
+  { sel: '#customize', t: 'Applied — everywhere at once', act: 'applyCrop',
+    say: "One tap on add-to-signature, and the cropped photo lands in every design at once — the switch flips itself on automatically. The size is yours to choose as well: compact, standard or large, and every design follows.",
+    hl: [ { s: '.seg[data-seg="photo"]', l: 'Photo size — compact / standard / large', t: 'g' } ] }
+]},
+{ ch: 'Company & institution', stops: [
+  { sel: '#customize', t: 'Name, website & logo',
+    say: "Organisations get three things: a name, a website link, and a logo. The website is the clever part — it is embedded in both the logo image and the name text, so a click on either one opens the site. The company here carries the Acme Industries website.",
+    hl: [ { s: '.config-field[data-field="company"]', l: 'Company — name + website + logo' }, { s: 'input[data-key="companyLink"]', l: 'Website — embedded in logo AND name', t: 'g' } ] },
+  { sel: '#customize', t: 'A real logo, live — and its colours', act: 'uploadLogo',
+    say: "Logos upload the same way — crop, or use as-is. Watch what happens to the colour scheme as this blue logo lands: its colours are picked up automatically, offered as swatches, and applied across every design. A second later the whole gallery has quietly re-themed itself.",
+    hl: [] },
+  { sel: '#customize', t: 'School & college',
+    say: "The school or college field works identically — institution name, website link embedded in both the crest and the name, and a logo that renders large enough to actually read. Perfect for academic and campus mail.",
+    hl: [ { s: '.config-field[data-field="school"]', l: 'Institution — same three parts' }, { s: '.sw-row', l: 'Colours picked up from your images', t: 'y' } ] }
+]},
+{ ch: 'Colour scheme', stops: [
+  { sel: '#customize', t: 'Presets & image colours',
+    say: "The colour scheme group drives every design at once. Ten curated presets cover classic pairings — from Navy and Gold to Carbon and Scarlet. Above them sit the swatches harvested from your uploaded logos: click any swatch to make it the primary colour on the spot.",
+    hl: [ { s: '.sw-row', l: 'Colours from your images' }, { s: '.preset-grid', l: '10 curated presets', t: 'g' } ] },
+  { sel: '#customize', t: 'Custom colours',
+    say: "Prefer your own? The custom pickers take any primary and accent you like — brand colours, faculty colours, whatever fits. The palette updates the moment you choose, and the logo-forward designs follow it first.",
+    hl: [ { s: '.custom-colors', l: 'Custom primary + accent', t: 'y' } ] }
+]},
+{ ch: 'Icons & sizes', stops: [
+  { sel: '#customize', t: 'Official square marks',
+    say: "Social channels appear as official square brand marks — real images, not drawings — with each profile link embedded inside the icon itself. That is what lets the icons and their links survive the paste into Gmail, Outlook or Apple Mail intact.",
+    hl: [ { s: '#links-box .lr-ic', l: 'Official square marks' }, { s: '.seg[data-seg="shape"]', l: 'Rounded square or circle', t: 'g' } ] },
+  { sel: '#customize', t: 'Four size controls',
+    say: "Sizes are options, not guesses. Icon size, photo size and logo size each come in compact, standard and large — set them once, and every one of the sixteen designs follows along.",
+    hl: [ { s: '.seg[data-seg="size"]', l: 'Icon size' }, { s: '.seg[data-seg="photo"]', l: 'Photo size', t: 'y' }, { s: '.seg[data-seg="logo"]', l: 'Logo size', t: 'g' } ] }
+]},
+{ ch: 'The designs', stops: [
+  { sel: '#gallery', t: 'Step 2 — the gallery',
+    say: "Step two: browse and copy. One unified system — the same details, images and colours reshaped sixteen ways. Your photo is present in every design, and the link order you set in step one is the order you see here.",
+    hl: [ { s: '.sig-grid', l: '16 designs · one system' } ] },
+  { sel: '#gallery', t: 'Classic & sidebar',
+    say: "Classic Rule sets the timeless tone — serif type, double rule lines, your photo alongside. Sidebar Accent adds a crisp vertical colour bar over a clean sans column. Both quietly authoritative, both fully yours.",
+    hl: [ { s: '.sig-card[data-id="classic"]', l: 'Classic Rule' }, { s: '.sig-card[data-id="sidebar"]', l: 'Sidebar Accent', t: 'g' } ] },
+  { sel: '#gallery', t: 'Banner & business card',
+    say: "Banner Header pours your colour scheme into a full-width header over a soft body panel with the photo inside. Business Card is the classic two-column layout — rectangular photo left, details right — the one people print and remember.",
+    hl: [ { s: '.sig-card[data-id="banner"]', l: 'Banner Header' }, { s: '.sig-card[data-id="bizcard"]', l: 'Business Card', t: 'g' } ] },
+  { sel: '#gallery', t: 'Monogram & company',
+    say: "Monogram Tile puts your initials — or your photo — on a bold colour block. Company Branded leans into the organisation: the logo renders large and clearly visible, and both the logo and the name carry the website link.",
+    hl: [ { s: '.sig-card[data-id="monogram"]', l: 'Monogram Tile' }, { s: '.sig-card[data-id="company"]', l: 'Company Branded — logo-forward', t: 'y' } ] },
+  { sel: '#gallery', t: 'Gradient & dark premium',
+    say: "Gradient Banner shifts a two-tone strip with your scheme. Dark Premium is the after-hours look — a deep ink panel, an accent rule, and your photo glowing in the header. Logos sit on a white chip there so they stay crisp on the dark background.",
+    hl: [ { s: '.sig-card[data-id="gradient"]', l: 'Gradient Banner' }, { s: '.sig-card[data-id="darkexec"]', l: 'Dark Premium', t: 'y' } ] },
+  { sel: '#gallery', t: 'Social hub & compact',
+    say: "Social Hub goes icon-forward — every enabled channel as a big official square tile. The One-Liner and Compact Footer compress everything into single lines and tiny footers, with the photo riding inline — perfect for reply chains and mobile.",
+    hl: [ { s: '.sig-card[data-id="socialhub"]', l: 'Social Hub — icon-forward' }, { s: '.sig-card[data-id="oneliner"]', l: 'The One-Liner', t: 'g' }, { s: '.sig-card[data-id="compact"]', l: 'Compact Footer', t: 'y' } ] }
+]},
+{ ch: 'Copy & paste', stops: [
+  { sel: '#gallery', t: 'Two buttons, both simple',
+    say: "Each design keeps exactly two actions. Copy Signature — the full thing: icons, images and their embedded links, pasted with Ctrl or Cmd plus V. And the text version — the same details with plain links, for apps that prefer plain text. Nothing else to configure.",
+    hl: [ { s: '.sig-card[data-id="classic"] .sig-actions', l: 'Copy Signature · Text version', t: 'g' } ] },
+  { sel: '#howto', t: 'Step 3 — paste into your mail client',
+    say: "Step three is the paste itself, spelled out for Gmail, Outlook and Apple Mail — settings, signature, create new, paste, save. The pro tips card adds the finishing touches: professional links first, tidy rectangular crops, the text version for plain-text apps, and a test email to yourself.",
+    hl: [ { s: '.howto-card', l: 'Gmail — step by step' }, { s: '.howto-card.tips', l: 'Pro tips', t: 'y' } ] }
+]},
+{ ch: 'Comfort & creator', stops: [
+  { sel: '#gallery', t: 'Dark theme — one tap', act: 'themeDark',
+    say: "Comfort matters too. One tap on the moon toggles a full dark theme across the whole builder — while your signature previews stay on clean white, exactly like a real email body.",
+    hl: [ { s: '#theme-toggle', l: 'One-tap dark theme', t: 'y' } ] },
+  { sel: '#gallery', t: 'Phones', mobile: true, act: 'themeLight',
+    say: "On phones the builder reflows completely — the config panel stacks, the gallery goes single-column, and every control stays reachable. The same page, comfortable at any width.",
+    hl: [ { s: '.sig-grid', l: 'Single column on phones' } ] },
+  { sel: 'footer', t: 'The creator',
+    say: "And the credits: concept, design and interface of Signature Studio — created and designed by Magesh Kanna S, with LinkedIn and portfolio links right here in the footer card.",
+    hl: [ { s: '.creator-card', l: 'Creator — Magesh Kanna S', t: 'y' } ] }
+]},
+{ ch: 'Outro', stops: [
+  { type: 'outro', t: 'One builder. Every design. Yours.',
+    say: "That completes the walkthrough: details with toggles, links in your order, a cropped rectangular photo in every design, logos with embedded website links, colour schemes matched from your images, official square icons in your size — and sixteen designs that copy with everything intact. Email Signature Studio — created and designed by Magesh Kanna S. Thank you for watching." }
+]}
+];
+
+
+function flatten() {
+  FLAT = [];
+  let n = 0;
+  TOUR.forEach((ch, ci) => { ch.stops.forEach(st => { st.ch = ch.ch; st.ci = ci; st.gi = n++; FLAT.push(st); }); });
+}
+function estimateSecs(tour) {
+  let w = 0, stops = 0;
+  tour.forEach(ch => ch.stops.forEach(st => { w += (st.say || '').split(/\s+/).filter(Boolean).length; stops++; }));
+  /* narration drives the clock; margin for highlight beats and live acts */
+  return Math.round(w * 0.42 + stops * 2.4);
+}
+function fmtDur(s) { return '\u2248 ' + Math.max(1, Math.round(s / 60)) + ' min'; }
+
+/* ═════════ frame plumbing (srcdoc — same-origin, fully scriptable) ═════════ */
+const loadWaiters = [];
+frame.addEventListener('load', () => {
+  const doc = fdoc();
+  if (doc && doc.body) injectChrome(doc);
+  loadWaiters.splice(0).forEach(fn => fn());
+});
+function fdoc() {
+  try { const d = frame.contentDocument; return (d && d.body) ? d : null; } catch (e) { return null; }
+}
+function appReady() {
+  return new Promise(res => {
+    const t = setTimeout(fin, 15000);
+    loadWaiters.push(fin);
+    function fin() {
+      clearTimeout(t);
+      let k = 0;
+      (function poll() {
+        const doc = fdoc();
+        if (doc && doc.querySelectorAll('.sig-card').length === 16) { setTimeout(res, 500); return; }
+        if (++k > 50) { setTimeout(res, 300); return; }
+        setTimeout(poll, 150);
+      })();
+    }
+    frame.srcdoc = APP_HTML;
+  });
+}
+
+/* ── synthetic cursor + highlight ring, injected into the app page ── */
+function injectChrome(doc) {
+  if (doc.getElementById('mdt-tour-css')) return;
+  const css = doc.createElement('style');
+  css.id = 'mdt-tour-css';
+  css.textContent = '' +
+    '#tourCur{position:fixed;z-index:99999;left:50%;top:44%;width:28px;height:28px;pointer-events:none;transition:left .85s cubic-bezier(.45,.05,.55,.95),top .85s cubic-bezier(.45,.05,.55,.95);}' +
+    '#tourCur svg{filter:drop-shadow(0 4px 8px rgba(0,0,0,.4));}' +
+    '#tourRing{position:fixed;z-index:99998;left:-999px;top:-999px;width:0;height:0;border:3px solid #4285F4;border-radius:12px;pointer-events:none;opacity:0;transition:opacity .4s,left .45s cubic-bezier(.34,1.3,.64,1),top .45s cubic-bezier(.34,1.3,.64,1),width .45s,height .45s;}' +
+    '#tourRing.on{opacity:1;animation:tourPulse 1.8s ease infinite;}' +
+    '#tourRing.g{border-color:#34A853;}#tourRing.y{border-color:#FBBC05;}#tourRing.r{border-color:#EA4335;}' +
+    '@keyframes tourPulse{0%,100%{box-shadow:0 0 0 3px rgba(66,133,244,.28),0 0 18px rgba(66,133,244,.4);}50%{box-shadow:0 0 0 9px rgba(66,133,244,.10),0 0 26px rgba(66,133,244,.5);}}' +
+    '#tourLab{position:fixed;z-index:100000;left:-999px;top:-999px;background:#1F2328;color:#fff;font:700 11.5px/1.25 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;padding:6px 12px;border-radius:8px;pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .35s,transform .35s,left .45s,top .45s;white-space:nowrap;box-shadow:0 8px 22px rgba(0,0,0,.35);max-width:70vw;overflow:hidden;text-overflow:ellipsis;}' +
+    '#tourLab.on{opacity:1;transform:translateY(0);}' +
+    '#tourLab em{font-style:normal;color:#8ab4f8;}' +
+    '#tourDim{position:fixed;inset:0;z-index:99990;pointer-events:none;background:transparent;transition:background .4s;}' +
+    '#tourDim.on{background:rgba(9,14,20,.14);}';
+  doc.head.appendChild(css);
+  const mk = (id, html) => { const d = doc.createElement('div'); d.id = id; d.innerHTML = html || ''; doc.body.appendChild(d); return d; };
+  mk('tourDim');
+  mk('tourRing');
+  mk('tourLab');
+  mk('tourCur', '<svg viewBox="0 0 24 24" width="28" height="28"><path d="M4.5 1.8 L4.5 20.4 L9 16.1 L11.8 22.4 L14.9 21 L12.2 14.9 L19 14.7 Z" fill="#1a73e8" stroke="#fff" stroke-width="1.5"/></svg>');
+}
+function clearHL() {
+  const doc = fdoc(); if (!doc) return;
+  ['tourRing', 'tourLab', 'tourDim'].forEach(id => { const el = doc.getElementById(id); if (el) el.classList.remove('on'); });
+}
+function findEl(spec) {
+  const doc = fdoc(); if (!doc) return null;
+  const sels = Array.isArray(spec) ? spec : [spec.s || spec];
+  for (const s of sels) { try { const el = doc.querySelector(s); if (el) return el; } catch (e) {} }
+  const fb = ['.panel-head', '.config-field', '.link-row', '.sig-card', '.howto-card', '.creator-card', '#sig-grid', '#config-root', '#hero'];
+  for (const s of fb) { try { const el = doc.querySelector(s); if (el) return el; } catch (e) {} }
+  return null;
+}
+async function target(spec, tok) {
+  const el = findEl(spec); if (!el) return;
+  try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+  await wait(700); if (tok !== runTok) return;
+  const doc = fdoc(); if (!doc) return;
+  const r = el.getBoundingClientRect();
+  const ring = doc.getElementById('tourRing'); const lab = doc.getElementById('tourLab'); const cur = doc.getElementById('tourCur'); const dim = doc.getElementById('tourDim');
+  if (!ring || !lab || !cur) return;
+  const pad = 7;
+  ring.className = ''; ring.classList.add('on');
+  ring.style.left = Math.max(4, r.left - pad) + 'px';
+  ring.style.top = Math.max(4, r.top - pad) + 'px';
+  ring.style.width = Math.max(34, r.width + pad * 2) + 'px';
+  ring.style.height = Math.max(34, r.height + pad * 2) + 'px';
+  if (spec.t) ring.classList.add(spec.t);
+  cur.style.left = (r.left + r.width * 0.62) + 'px';
+  cur.style.top = (r.top + r.height * 0.68) + 'px';
+  const label = typeof spec === 'string' ? '' : (spec.l || '');
+  if (label) {
+    lab.innerHTML = '<em>' + (spec.lh || '\u25BA') + '</em> ' + label;
+    const vw = doc.documentElement.clientWidth || frame.clientWidth || 1200;
+    lab.style.left = Math.min(Math.max(8, r.left), Math.max(8, vw - 260)) + 'px';
+    const above = r.top - 44 > 76; /* keep clear of the app top bar */
+    lab.style.top = (above ? Math.max(64, r.top - 44) : Math.min((frame.clientHeight || 800) - 40, r.bottom + 12)) + 'px';
+    lab.classList.add('on');
+  } else lab.classList.remove('on');
+  if (dim) dim.classList.add('on');
+}
+function clickIn(doc, sel) {
+  try { const el = doc.querySelector(sel); if (el) { el.click(); return true; } } catch (e) {}
+  return false;
+}
+
+/* ── live uploads: a portrait and a logo, handed to the app as real files ── */
+async function syntheticUpload(slot, tok) {
+  const c = document.createElement('canvas');
+  let blob;
+  if (slot === 'photo') {
+    c.width = 600; c.height = 750;
+    const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 600, 750); g.addColorStop(0, '#6d28d9'); g.addColorStop(1, '#0ea5e9');
+    x.fillStyle = g; x.fillRect(0, 0, 600, 750);
+    x.fillStyle = '#ffffff';
+    x.beginPath(); x.arc(300, 280, 120, 0, Math.PI * 2); x.fill();
+    x.beginPath(); x.arc(300, 430, 150, Math.PI, 0); x.fill();
+    x.fillRect(150, 430, 300, 250);
+    blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  } else {
+    c.width = 520; c.height = 150;
+    const x = c.getContext('2d');
+    x.fillStyle = '#0b5ed7'; x.fillRect(0, 0, 520, 150);
+    x.fillStyle = '#ffffff'; x.font = 'bold 78px Arial'; x.fillText('ACME', 46, 102);
+    x.fillStyle = '#ffd166'; x.beginPath(); x.arc(440, 75, 34, 0, Math.PI * 2); x.fill();
+    blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  }
+  const file = new File([blob], slot === 'photo' ? 'portrait.png' : 'logo.png', { type: 'image/png' });
+  for (let k = 0; k < 20; k++) {
+    const d = fdoc(); if (!d) { await wait(200); continue; }
+    const input = d.querySelector('input[data-upload="' + slot + '"]');
+    if (input) {
+      const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      break;
+    }
+    await wait(200); if (tok !== runTok) return;
+  }
+  /* wait for the crop step to open */
+  for (let k = 0; k < 30; k++) {
+    await wait(200); if (tok !== runTok) return;
+    const d = fdoc();
+    if (d && d.getElementById('crop-veil') && d.getElementById('crop-veil').classList.contains('open')) return;
+  }
+}
+
+/* ═════════ captions (typed) ═════════ */
+const typeTimer = { id: null };
+function caption(st) {
+  const text = st.say || '';
+  G('capChip').textContent = st.ch || 'TOUR';
+  G('capTitle').textContent = st.t || '';
+  const box = G('capText');
+  clearInterval(typeTimer.id);
+  box.innerHTML = '<span class="caret"></span>';
+  let i = 0;
+  const step = Math.max(1, Math.round(text.length / 320) * 2);
+  typeTimer.id = setInterval(() => {
+    i += step;
+    if (i >= text.length) { i = text.length; clearInterval(typeTimer.id); box.innerHTML = esc(text); }
+    else box.innerHTML = esc(text.slice(0, i)) + '<span class="caret"></span>';
+  }, 34);
+}
+function esc(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+
+/* ═════════ HUD ═════════ */
+function buildHUD() {
+  const tabs = G('ctabs');
+  tabs.innerHTML = '';
+  const list = G('chList');
+  list.innerHTML = '';
+  TOUR.forEach((ch, ci) => {
+    const t = document.createElement('div');
+    t.className = 'ctab'; t.title = ch.ch + ' · ' + ch.stops.length + ' scenes';
+    t.onclick = () => jumpTo(FLAT.findIndex(s => s.ci === ci));
+    tabs.appendChild(t);
+  });
+  TOUR.forEach((ch, ci) => {
+    const row = document.createElement('div');
+    row.className = 'chrow'; row.id = 'chr' + ci;
+    row.innerHTML = '<span class="ci"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/></svg></span><span class="cn">' + esc(ch.ch) + '</span><span class="cm">' + ch.stops.length + '</span>';
+    row.onclick = () => { jumpTo(FLAT.findIndex(s => s.ci === ci)); toggleChapters(false); };
+    list.appendChild(row);
+  });
+}
+function updateHUD() {
+  if (idx < 0) return;
+  const st = FLAT[idx];
+  G('pfill').style.width = ((idx + 1) / FLAT.length * 100) + '%';
+  document.querySelectorAll('.ctab').forEach((t, i) => { t.className = 'ctab' + (i < st.ci ? ' done' : i === st.ci ? ' cur' : ''); });
+  G('hiChap').textContent = st.ch;
+  G('hiStop').textContent = (idx + 1) + ' / ' + FLAT.length;
+  document.querySelectorAll('.chrow').forEach((r, i) => {
+    r.className = 'chrow' + (i < st.ci ? ' done' : i === st.ci ? ' cur' : '');
+    r.querySelector('.ci').innerHTML = i < st.ci
+      ? '<svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12 3.4 13.4 9 19 21 7l-1.4-1.4z"/></svg>'
+      : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/></svg>';
+  });
+}
+function startClock() {
+  setInterval(() => {
+    const s = clockStart ? Math.floor((Date.now() - clockStart) / 1000) : 0;
+    G('hudTimer').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }, 1000);
+}
+function toggleChapters(force) {
+  const m = G('chMenu');
+  m.classList.toggle('show', force === undefined ? !m.classList.contains('show') : force);
+}
+
+/* ═════════ tour picker + start ═════════ */
+function showPicker() {
+  clearTimers(); clearTimeout(replayTimer); replayTimer = null;
+  clearHL(); VO.stop();
+  idx = -1; paused = false; setPlayIcon();
+  G('pfill').style.width = '0%';
+  G('hiChap').textContent = 'Pick a tour'; G('hiStop').textContent = '0 / 0';
+  G('hudTimer').textContent = '00:00';
+  clockStart = null;
+  G('pickQDur').textContent = fmtDur(estimateSecs(TOUR_QUICK));
+  G('pickFDur').textContent = fmtDur(estimateSecs(TOUR_FULL));
+  G('ov-pick').classList.add('show');
+  G('ov-intro').classList.remove('show');
+  G('ov-out').classList.remove('show');
+}
+function startTour(mode) {
+  MODE = mode;
+  TOUR = mode === 'quick' ? TOUR_QUICK : TOUR_FULL;
+  flatten();
+  buildHUD();
+  G('ov-pick').classList.remove('show');
+  paused = false; setPlayIcon();
+  clockStart = Date.now();
+  runStop(0);
+}
+G('btnQuick').onclick = () => startTour('quick');
+G('btnFull').onclick = () => startTour('full');
+G('btnSwitch').onclick = () => showPicker();
+
+/* ═════════ theme / live acts (real interactions in the app) ═════════ */
+async function runAct(st, tok) {
+  const a = st.act; if (!a) return;
+  if (a === 'themeDark' || a === 'themeLight') {
+    await wait(2600); if (tok !== runTok) return;
+    await target({ s: '#theme-toggle', l: 'Theme toggle — one tap', t: 'y' }, tok); if (tok !== runTok) return;
+    await wait(900); if (tok !== runTok) return;
+    clickIn(fdoc(), '#theme-toggle');
+  }
+  if (a === 'uploadPhoto') {
+    await wait(1200); if (tok !== runTok) return;
+    await syntheticUpload('photo', tok); if (tok !== runTok) return;
+    await target({ s: '#crop-stage', l: 'Drag · zoom · pick the shape', t: 'y' }, tok); if (tok !== runTok) return;
+    await wait(2600 / SPEED); if (tok !== runTok) return;
+    await target({ s: '.aspect-chips', l: '1:1 · 4:5 · 3:4 · 16:9 · original' }, tok);
+  }
+  if (a === 'applyCrop') {
+    await wait(600); if (tok !== runTok) return;
+    await target({ s: '#crop-apply', l: 'Add to signature — lands in every design', t: 'g' }, tok); if (tok !== runTok) return;
+    await wait(1000); if (tok !== runTok) return;
+    const d = fdoc(); if (d) { const b = d.getElementById('crop-apply'); if (b) b.click(); }
+  }
+  if (a === 'uploadLogo') {
+    await wait(1200); if (tok !== runTok) return;
+    await syntheticUpload('companyLogo', tok); if (tok !== runTok) return;
+    await target({ s: '#crop-apply', l: 'Add the logo — its colours come along', t: 'g' }, tok); if (tok !== runTok) return;
+    await wait(1000); if (tok !== runTok) return;
+    const d = fdoc(); if (d) { const b = d.getElementById('crop-apply'); if (b) b.click(); }
+    await wait(1300); if (tok !== runTok) return;
+    await target({ s: '.sw-row', l: 'Colours picked up from your logo', t: 'y' }, tok);
+  }
+  if (a === 'scrollTop') {
+    const d = fdoc(); if (d) { try { d.defaultView.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {} }
+  }
+}
+
+/* ═════════ scene runner ═════════ */
+async function runStop(i) {
+  const tok = ++runTok;
+  clearTimers(); clearTimeout(replayTimer); replayTimer = null;
+  clearHL(); VO.stop();
+  idx = i; updateHUD();
+  const st = FLAT[i];
+  if (!st) return;
+
+  if (st.type === 'intro') {
+    G('ov-intro').classList.add('show'); G('ov-out').classList.remove('show');
+    G('stage').classList.remove('mobile');
+    const im = G('introMode'); if (im) im.textContent = MODE === 'quick' ? '5-minute overview' : 'full walkthrough';
+    caption(st);
+    setTimeout(() => { const l = G('introLg'); if (l) l.classList.add('on'); }, 350);
+    [1, 2, 3, 4].forEach(n => setTimeout(() => { const b = G('bl' + n); if (b) b.classList.add('on'); }, 900 + n * 330));
+    VO.say(st.say, () => { wait(1300).then(() => { if (tok === runTok && !paused) runStop(i + 1); }); });
+    return;
+  }
+
+  if (st.type === 'outro') {
+    G('ov-out').classList.add('show'); G('ov-intro').classList.remove('show');
+    G('stage').classList.remove('mobile');
+    caption(st);
+    let left = 25;
+    G('replayCnt').textContent = 'Auto-replay in ' + left + 's';
+    const cnt = setInterval(() => {
+      left--; if (left <= 0) { clearInterval(cnt); return; }
+      G('replayCnt').textContent = 'Auto-replay in ' + left + 's';
+    }, 1000);
+    timers.push(cnt);
+    VO.say(st.say, () => {
+      replayTimer = setTimeout(() => { if (tok === runTok && !paused) restart(); }, 25000);
+    });
+    return;
+  }
+
+  /* normal app scene */
+  G('ov-intro').classList.remove('show'); G('ov-out').classList.remove('show');
+  G('stage').classList.toggle('mobile', !!st.mobile);
+
+  const doc = fdoc(); if (!doc) return;
+  if (st.sel) {
+    try { const el = doc.querySelector(st.sel); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+  } else {
+    try { doc.defaultView.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+  }
+  caption(st);
+  /* highlights + acts run in parallel with the voice; a scene advances
+     only when the narration AND its visual sequence are both complete */
+  const hlP = (async () => {
+    await wait(1000); if (tok !== runTok) return;
+    const hl = st.hl || [];
+    for (const h of hl) {
+      await target(h, tok); if (tok !== runTok) return;
+      await wait(2500 / SPEED); if (tok !== runTok) return;
+    }
+  })();
+  const actP = st.act ? runAct(st, tok) : Promise.resolve();
+  VO.say(st.say, () => {
+    Promise.all([hlP, actP]).then(() => wait(850)).then(() => {
+      if (tok === runTok && !paused) runStop(i + 1);
+    }).catch(() => {});
+  });
+}
+
+/* ═════════ controls ═════════ */
+function setPlayIcon() {
+  G('icPlay').style.display = paused ? '' : 'none';
+  G('icPause').style.display = paused ? 'none' : '';
+}
+function jumpTo(i) { if (i >= 0 && i < FLAT.length) { paused = false; setPlayIcon(); runStop(i); } }
+function restart() {
+  clearTimers(); clearTimeout(replayTimer); replayTimer = null;
+  clearHL(); VO.stop();
+  idx = -1; paused = false; setPlayIcon();
+  G('pfill').style.width = '0%';
+  G('hiChap').textContent = 'Pick a tour'; G('hiStop').textContent = '0 / 0';
+  G('hudTimer').textContent = '00:00';
+  clockStart = null;
+  try { localStorage.removeItem('sig-theme'); } catch (e) {}
+  /* fresh app state — the embedded application reloads itself */
+  appReady().then(() => { setTimeout(showPicker, 250); });
+}
+
+G('btnPlay').onclick = () => {
+  paused = !paused; setPlayIcon();
+  if (paused) { VO.stop(); clearTimers(); runTok++; }
+  else if (idx >= 0) runStop(idx);
+};
+G('btnNext').onclick = () => { paused = false; setPlayIcon(); jumpTo(Math.min(idx + 1, FLAT.length - 1)); };
+G('btnPrev').onclick = () => { paused = false; setPlayIcon(); jumpTo(Math.max(idx - 1, 0)); };
+G('btnRestart').onclick = () => restart();
+G('btnReplay2').onclick = () => startTour(MODE || 'full');
+G('btnVoice').onclick = () => {
+  VO.on = !VO.on;
+  G('icVoiceOn').style.display = VO.on ? '' : 'none';
+  G('icVoiceOff').style.display = VO.on ? 'none' : '';
+  G('btnVoice').classList.toggle('on', VO.on);
+  if (!VO.on) VO.stop();
+};
+G('btnCC').onclick = () => {
+  CC.on = !CC.on;
+  G('btnCC').classList.toggle('on', CC.on);
+  document.getElementById('player').classList.toggle('cc-off', !CC.on);
+};
+G('btnSpeed').onclick = () => {
+  SPEED = SPEED === 1 ? 1.25 : SPEED === 1.25 ? 1.5 : 1;
+  G('btnSpeed').textContent = SPEED + '×';
+};
+G('btnChapters').onclick = () => toggleChapters();
+document.addEventListener('click', e => { if (!e.target.closest('#chMenu') && !e.target.closest('#btnChapters')) toggleChapters(false); });
+
+/* debug / QA handle */
+window.TOURCTL = { jumpTo: jumpTo, flat: () => FLAT, startTour: startTour, showPicker: showPicker, state: () => ({ idx: idx, paused: paused, speed: SPEED, voice: VO.on, cc: CC.on, mode: MODE }) };
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') G('btnNext').click();
+  if (e.key === 'ArrowLeft') G('btnPrev').click();
+  if (e.key === ' ') { e.preventDefault(); G('btnPlay').click(); }
+  if (e.key === 'm' || e.key === 'M') G('btnVoice').click();
+  if (e.key === 'c' || e.key === 'C') toggleChapters();
+  if (e.key === 's' || e.key === 'S') G('btnCC').click();
+});
+
+/* ═════════ boot ═════════ */
+window.addEventListener('load', () => {
+  startClock(); setPlayIcon();
+  if (window.speechSynthesis) { window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices(); }
+  try { localStorage.removeItem('sig-theme'); } catch (e) {}
+  appReady().then(() => { setTimeout(showPicker, 250); });
+});
+})();
+</script>
+</body>
+</html>

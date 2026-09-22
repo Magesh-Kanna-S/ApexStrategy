@@ -81,7 +81,7 @@ export function LandingView() {
           >
             <Badge variant="secondary" className="mb-6 bg-muted/60 border-border/60">
               <Zap className="h-3 w-3 mr-1 text-chart-2" />
-              Outperforms Capsim &amp; BSG
+              Enterprise Strategy · Multi-Currency · AI Competitors
             </Badge>
             <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-4">
               Run Your Enterprise.
@@ -91,9 +91,9 @@ export function LandingView() {
               </span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              A modern, multi-department corporate business simulation with reactive
-              live proformas, AI competitors, and a sleek financial-terminal UI.
-              No database, no API keys — pure browser-based strategy.
+              A modern, multi-department corporate business simulation platform with reactive
+              live proformas, multi-currency financials (INR / USD), AI competitors, and a
+              sleek financial-terminal UI. Pure browser-based strategy — no setup required.
             </p>
           </motion.div>
 

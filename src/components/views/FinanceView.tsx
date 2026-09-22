@@ -24,6 +24,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useGame, buildDefaultDraftDecisions } from "@/context/GameContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,11 +32,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { computeLiveProforma, SIM_SHARES_OUTSTANDING, SIM_EMERGENCY_LOAN_RATE } from "@/engine/simulationEngine";
-import { fmtMoney, fmtPrice, fmtPct, fmtNum } from "@/lib/format";
+import { fmtPct, fmtNum } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export function FinanceView() {
   const { state, activeTeamId, draftDecisions, updateFinanceDecision, resetDraftToDefaults, importDecisionFromAI, toast } = useGame();
+  const { fmtMoney: fmtCurrency, fmtPrice: fmtCurrencyPrice } = useCurrency();
 
   const activeTeam = state?.teams.find((t) => t.id === activeTeamId) ?? state?.teams[0];
   const draft = (activeTeam && state) ? (draftDecisions[activeTeam.id] ?? buildDefaultDraftDecisions(state, activeTeam.id)) : null;
@@ -108,25 +110,25 @@ export function FinanceView() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <KpiCard
           label="Projected Cash"
-          value={fmtMoney(proforma.projectedCash)}
+          value={fmtCurrency(proforma.projectedCash)}
           tone={proforma.projectedCash > 1000 ? "good" : "bad"}
           icon={<Wallet className="h-4 w-4" />}
         />
         <KpiCard
           label="Projected Net Profit"
-          value={fmtMoney(proforma.projectedNetProfit)}
+          value={fmtCurrency(proforma.projectedNetProfit)}
           tone={proforma.projectedNetProfit >= 0 ? "good" : "bad"}
           icon={<Coins className="h-4 w-4" />}
         />
         <KpiCard
           label="Projected EPS"
-          value={fmtPrice(eps)}
+          value={fmtCurrencyPrice(eps)}
           tone={eps >= 0 ? "good" : "bad"}
           icon={<DollarSign className="h-4 w-4" />}
         />
         <KpiCard
           label="Stock Price (proj.)"
-          value={fmtPrice(proforma.projectedStockPrice)}
+          value={fmtCurrencyPrice(proforma.projectedStockPrice)}
           tone="good"
           icon={<TrendingUp className="h-4 w-4" />}
         />
@@ -168,7 +170,7 @@ export function FinanceView() {
                 />
                 <FieldInput
                   label="Dividend / Share"
-                  hint={`$ per share × ${fmtNum(shares)} shares`}
+                  hint={`Per share × ${fmtNum(shares)} shares outstanding`}
                   value={draft.finance.dividendPerShare}
                   onChange={(v) => updateFinanceDecision(activeTeam.id, { dividendPerShare: v })}
                   step={0.1}
@@ -176,10 +178,10 @@ export function FinanceView() {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 pt-3 border-t border-border/40">
-                <Stat label="Total Dividend" value={fmtMoney(projectedDividendTotal)} />
+                <Stat label="Total Dividend" value={fmtCurrency(projectedDividendTotal)} />
                 <Stat label="Payout Ratio" value={fmtPct(dividendPayoutRatio, 0)} />
-                <Stat label="Proj. Interest Expense" value={fmtMoney(projectedInterest)} tone="bad" />
-                <Stat label="Proj. Emergency Loan" value={fmtMoney(projectedBalance.emergencyLoan)} tone={projectedBalance.emergencyLoan > 0 ? "bad" : "neutral"} />
+                <Stat label="Proj. Interest Expense" value={fmtCurrency(projectedInterest)} tone="bad" />
+                <Stat label="Proj. Emergency Loan" value={fmtCurrency(projectedBalance.emergencyLoan)} tone={projectedBalance.emergencyLoan > 0 ? "bad" : "neutral"} />
               </div>
             </CardContent>
           </Card>
@@ -196,31 +198,31 @@ export function FinanceView() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <StatementRow label="Revenue" value={fmtMoney(proforma.projectedRevenue)} bold />
-              <StatementRow label="Cost of Goods Sold" value={`(${fmtMoney(proforma.projectedRevenue * 0.6)})`} tone="bad" indent />
+              <StatementRow label="Revenue" value={fmtCurrency(proforma.projectedRevenue)} bold />
+              <StatementRow label="Cost of Goods Sold" value={`(${fmtCurrency(proforma.projectedRevenue * 0.6)})`} tone="bad" indent />
               <StatementRow
                 label="Gross Margin"
-                value={fmtMoney(proforma.projectedRevenue * 0.4)}
+                value={fmtCurrency(proforma.projectedRevenue * 0.4)}
                 bold
                 separator
               />
-              <StatementRow label="R&D Expense" value={`(${fmtMoney(draft.productDecisions.reduce((s, d) => s + d.rndInvestment + d.automationInvestment * 0.5, 0))})`} tone="bad" indent />
-              <StatementRow label="Marketing Expense" value={`(${fmtMoney(draft.productDecisions.reduce((s, d) => s + d.promoBudget, 0))})`} tone="bad" indent />
-              <StatementRow label="Sales Expense" value={`(${fmtMoney(draft.productDecisions.reduce((s, d) => s + d.salesBudget, 0))})`} tone="bad" indent />
-              <StatementRow label="Admin & Overhead" value={`(${fmtMoney(1500 + proforma.projectedRevenue * 0.02)})`} tone="bad" indent />
-              <StatementRow label="Depreciation" value={`(${fmtMoney(((lastBalance?.plantAndEquipment ?? 18000) + draft.productDecisions.reduce((s, d) => s + d.automationInvestment + d.capacityInvestment, 0)) / 15)})`} tone="bad" indent />
+              <StatementRow label="R&D Expense" value={`(${fmtCurrency(draft.productDecisions.reduce((s, d) => s + d.rndInvestment + d.automationInvestment * 0.5, 0))})`} tone="bad" indent />
+              <StatementRow label="Marketing Expense" value={`(${fmtCurrency(draft.productDecisions.reduce((s, d) => s + d.promoBudget, 0))})`} tone="bad" indent />
+              <StatementRow label="Sales Expense" value={`(${fmtCurrency(draft.productDecisions.reduce((s, d) => s + d.salesBudget, 0))})`} tone="bad" indent />
+              <StatementRow label="Admin & Overhead" value={`(${fmtCurrency(1500 + proforma.projectedRevenue * 0.02)})`} tone="bad" indent />
+              <StatementRow label="Depreciation" value={`(${fmtCurrency(((lastBalance?.plantAndEquipment ?? 18000) + draft.productDecisions.reduce((s, d) => s + d.automationInvestment + d.capacityInvestment, 0)) / 15)})`} tone="bad" indent />
               <StatementRow
                 label="Operating Profit"
-                value={fmtMoney(proforma.projectedNetProfit + projectedInterest)}
+                value={fmtCurrency(proforma.projectedNetProfit + projectedInterest)}
                 bold
                 separator
                 tone={proforma.projectedNetProfit + projectedInterest >= 0 ? "good" : "bad"}
               />
-              <StatementRow label="Interest Expense" value={`(${fmtMoney(projectedInterest)})`} tone="bad" indent />
-              <StatementRow label="Tax (25%)" value={`(${fmtMoney(Math.max(0, proforma.projectedNetProfit) * 0.25)})`} tone="bad" indent />
+              <StatementRow label="Interest Expense" value={`(${fmtCurrency(projectedInterest)})`} tone="bad" indent />
+              <StatementRow label="Tax (25%)" value={`(${fmtCurrency(Math.max(0, proforma.projectedNetProfit) * 0.25)})`} tone="bad" indent />
               <StatementRow
                 label="Net Profit"
-                value={fmtMoney(proforma.projectedNetProfit)}
+                value={fmtCurrency(proforma.projectedNetProfit)}
                 bold
                 separator
                 tone={proforma.projectedNetProfit >= 0 ? "good" : "bad"}
@@ -248,22 +250,22 @@ export function FinanceView() {
               <div className="grid sm:grid-cols-2 gap-x-8 gap-y-0">
                 <div>
                   <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Assets</div>
-                  <StatementRow label="Cash" value={fmtMoney(projectedBalance.cash)} indent />
-                  <StatementRow label="Accounts Receivable" value={fmtMoney(proforma.projectedRevenue * (30 / 360))} indent />
-                  <StatementRow label="Inventory" value={fmtMoney(lastBalance?.inventory ?? 0)} indent />
-                  <StatementRow label="Plant & Equipment" value={fmtMoney((lastBalance?.plantAndEquipment ?? 18000) + draft.productDecisions.reduce((s, d) => s + d.automationInvestment + d.capacityInvestment, 0))} indent />
-                  <StatementRow label="Accum. Depreciation" value={`(${fmtMoney((lastBalance?.accumulatedDepreciation ?? 0) + ((lastBalance?.plantAndEquipment ?? 18000) / 15))})`} indent tone="bad" />
+                  <StatementRow label="Cash" value={fmtCurrency(projectedBalance.cash)} indent />
+                  <StatementRow label="Accounts Receivable" value={fmtCurrency(proforma.projectedRevenue * (30 / 360))} indent />
+                  <StatementRow label="Inventory" value={fmtCurrency(lastBalance?.inventory ?? 0)} indent />
+                  <StatementRow label="Plant & Equipment" value={fmtCurrency((lastBalance?.plantAndEquipment ?? 18000) + draft.productDecisions.reduce((s, d) => s + d.automationInvestment + d.capacityInvestment, 0))} indent />
+                  <StatementRow label="Accum. Depreciation" value={`(${fmtCurrency((lastBalance?.accumulatedDepreciation ?? 0) + ((lastBalance?.plantAndEquipment ?? 18000) / 15))})`} indent tone="bad" />
                 </div>
                 <div>
                   <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Liabilities & Equity</div>
-                  <StatementRow label="Accounts Payable" value={fmtMoney(proforma.projectedRevenue * 0.6 * (30 / 360))} indent />
-                  <StatementRow label="Short-Term Debt" value={fmtMoney(projectedBalance.shortTermDebt)} indent />
-                  <StatementRow label="Long-Term Debt" value={fmtMoney(projectedBalance.longTermDebt)} indent />
+                  <StatementRow label="Accounts Payable" value={fmtCurrency(proforma.projectedRevenue * 0.6 * (30 / 360))} indent />
+                  <StatementRow label="Short-Term Debt" value={fmtCurrency(projectedBalance.shortTermDebt)} indent />
+                  <StatementRow label="Long-Term Debt" value={fmtCurrency(projectedBalance.longTermDebt)} indent />
                   {projectedBalance.emergencyLoan > 0 && (
-                    <StatementRow label="Emergency Loan" value={fmtMoney(projectedBalance.emergencyLoan)} indent tone="bad" />
+                    <StatementRow label="Emergency Loan" value={fmtCurrency(projectedBalance.emergencyLoan)} indent tone="bad" />
                   )}
-                  <StatementRow label="Common Stock" value={fmtMoney(projectedBalance.commonStock)} indent />
-                  <StatementRow label="Retained Earnings" value={fmtMoney((lastBalance?.retainedEarnings ?? 0) + proforma.projectedNetProfit - projectedDividendTotal)} indent />
+                  <StatementRow label="Common Stock" value={fmtCurrency(projectedBalance.commonStock)} indent />
+                  <StatementRow label="Retained Earnings" value={fmtCurrency((lastBalance?.retainedEarnings ?? 0) + proforma.projectedNetProfit - projectedDividendTotal)} indent />
                 </div>
               </div>
             </CardContent>
@@ -295,7 +297,7 @@ export function FinanceView() {
                     proforma.projectedCash > 0 ? "text-chart-2" : "text-chart-3"
                   )}
                 >
-                  {fmtMoney(proforma.projectedCash)}
+                  {fmtCurrency(proforma.projectedCash)}
                 </div>
                 <div className="text-[10px] text-muted-foreground mt-1">
                   End of next round
@@ -332,19 +334,19 @@ export function FinanceView() {
 
               <SummaryRow
                 label="Current Cash"
-                value={fmtMoney(lastBalance?.cash ?? 0)}
+                value={fmtCurrency(lastBalance?.cash ?? 0)}
               />
               <SummaryRow
                 label="Current Short-Term Debt"
-                value={fmtMoney(lastBalance?.shortTermDebt ?? 0)}
+                value={fmtCurrency(lastBalance?.shortTermDebt ?? 0)}
               />
               <SummaryRow
                 label="Current Long-Term Debt"
-                value={fmtMoney(lastBalance?.longTermDebt ?? 0)}
+                value={fmtCurrency(lastBalance?.longTermDebt ?? 0)}
               />
               <SummaryRow
                 label="Current Stock Price"
-                value={fmtPrice(lastMetrics?.stockPrice ?? 25)}
+                value={fmtCurrencyPrice(lastMetrics?.stockPrice ?? 25)}
                 tone="good"
               />
               <SummaryRow
@@ -368,7 +370,7 @@ export function FinanceView() {
                       const shortfall = Math.max(0, 2000 - proforma.projectedCash);
                       if (shortfall > 0) {
                         updateFinanceDecision(activeTeam.id, { shortTermDebt: shortfall });
-                        toast(`Added ${fmtMoney(shortfall)} short-term debt to cover shortfall`, "success");
+                        toast(`Added ${fmtCurrency(shortfall)} short-term debt to cover shortfall`, "success");
                       } else {
                         toast("Cash position is healthy — no action needed", "default");
                       }

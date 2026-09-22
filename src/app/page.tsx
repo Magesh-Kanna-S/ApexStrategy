@@ -2,20 +2,23 @@
 
 /**
  * ApexStrategy Enterprise — Root Page
- * Wires GameProvider + Navigation + view router.
+ * Wires CurrencyProvider + GameProvider + Navigation + view router.
  * Uses in-app state-based view switching (no URL routes)
  * for instant client-side navigation and zero-setup.
  */
 
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 import { GameProvider, useGame } from "@/context/GameContext";
 import { Navigation } from "@/components/Navigation";
 import { LandingView } from "@/components/views/LandingView";
 import { DashboardView } from "@/components/views/DashboardView";
 import { RndView } from "@/components/views/RndView";
 import { MarketingView } from "@/components/views/MarketingView";
-import { ProductionView } from "@/components/views/ProductionView";
+import { OperationsView } from "@/components/views/OperationsView";
+import { HrView } from "@/components/views/HrView";
+import { StrategyView } from "@/components/views/StrategyView";
 import { FinanceView } from "@/components/views/FinanceView";
 import { ResultsView } from "@/components/views/ResultsView";
 
@@ -54,9 +57,11 @@ function GameShell() {
           >
             {view === "landing" && <LandingView />}
             {view === "dashboard" && <DashboardView />}
+            {view === "strategy" && <StrategyView />}
             {view === "rnd" && <RndView />}
             {view === "marketing" && <MarketingView />}
-            {view === "production" && <ProductionView />}
+            {view === "operations" && <OperationsView />}
+            {view === "hr" && <HrView />}
             {view === "finance" && <FinanceView />}
             {view === "results" && <ResultsView />}
           </motion.div>
@@ -68,8 +73,10 @@ function GameShell() {
 
 export default function Home() {
   return (
-    <GameProvider>
-      <GameShell />
-    </GameProvider>
+    <CurrencyProvider>
+      <GameProvider>
+        <GameShell />
+      </GameProvider>
+    </CurrencyProvider>
   );
 }

@@ -25,12 +25,13 @@ import {
   Zap,
 } from "lucide-react";
 import { useGame } from "@/context/GameContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { FinancialChart } from "@/components/charts/FinancialChart";
 import { MarketShareChart } from "@/components/charts/MarketShareChart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { fmtMoney, fmtPct, fmtPrice, fmtNum } from "@/lib/format";
+import { fmtPct, fmtNum } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const SEGMENT_LABELS: Record<string, string> = {
@@ -43,6 +44,7 @@ const SEGMENT_LABELS: Record<string, string> = {
 
 export function ResultsView() {
   const { state, activeTeamId, setView, processNextRound, canProcessRound } = useGame();
+  const { fmtMoney, fmtPrice } = useCurrency();
   if (!state) return null;
 
   const latest = state.history[state.history.length - 1];
@@ -163,7 +165,7 @@ export function ResultsView() {
                             delta >= 0 ? "text-chart-1" : "text-chart-3"
                           )}
                         >
-                          {delta >= 0 ? "+" : ""}{delta.toFixed(2)}
+                          {delta >= 0 ? "+" : "-"}{fmtPrice(Math.abs(delta))}
                         </div>
                         <div className="text-[10px] text-muted-foreground">Δ vs prev</div>
                       </div>

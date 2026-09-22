@@ -15,17 +15,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2,
   LayoutDashboard,
+  Compass,
   FlaskConical,
   Megaphone,
   Factory,
+  Users,
   Landmark,
   Trophy,
   PlayCircle,
-  Users,
   ChevronDown,
   CheckCircle2,
+  Coins,
 } from "lucide-react";
 import { useGame } from "@/context/GameContext";
+import { useCurrency, CURRENCIES } from "@/context/CurrencyContext";
+import type { CurrencyCode } from "@/context/CurrencyContext";
 import type { ViewId } from "@/types/game";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -41,9 +45,11 @@ import { Badge } from "@/components/ui/badge";
 
 const NAV_ITEMS: { id: ViewId; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
+  { id: "strategy", label: "Strategy", icon: <Compass className="h-4 w-4" /> },
   { id: "rnd", label: "R&D", icon: <FlaskConical className="h-4 w-4" /> },
   { id: "marketing", label: "Marketing", icon: <Megaphone className="h-4 w-4" /> },
-  { id: "production", label: "Production", icon: <Factory className="h-4 w-4" /> },
+  { id: "operations", label: "Operations", icon: <Factory className="h-4 w-4" /> },
+  { id: "hr", label: "HR", icon: <Users className="h-4 w-4" /> },
   { id: "finance", label: "Finance", icon: <Landmark className="h-4 w-4" /> },
   { id: "results", label: "Results", icon: <Trophy className="h-4 w-4" /> },
 ];
@@ -58,6 +64,7 @@ export function Navigation() {
     processNextRound,
     canProcessRound,
   } = useGame();
+  const { currency, setCurrency, ratesLive } = useCurrency();
 
   if (!state) return null;
 
@@ -65,6 +72,7 @@ export function Navigation() {
   const maxRounds = state.maxRounds;
   const progressPct = (round / maxRounds) * 100;
   const activeTeam = state.teams.find((t) => t.id === activeTeamId) ?? state.teams[0];
+  const currencyInfo = CURRENCIES[currency];
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
@@ -137,8 +145,57 @@ export function Navigation() {
             </AnimatePresence>
           </div>
 
-          {/* Right: team switcher + process round */}
+          {/* Right: currency switcher + team switcher + process round */}
           <div className="flex items-center gap-2">
+            {/* Currency switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Coins className="h-3.5 w-3.5" />
+                  <span className="font-semibold">{currencyInfo.symbol}</span>
+                  <span className="hidden lg:inline text-[11px] text-muted-foreground">{currency}</span>
+                  <span
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full",
+                      ratesLive ? "bg-chart-1 apex-live-dot" : "bg-chart-2"
+                    )}
+                    title={ratesLive ? "Live exchange rates" : "Using fallback rates"}
+                  />
+                  <ChevronDown className="h-3 w-3 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-60">
+                <DropdownMenuLabel className="text-xs">
+                  Display Currency {ratesLive ? "· Live rates" : "· Fallback rates"}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => {
+                  const info = CURRENCIES[code];
+                  return (
+                    <DropdownMenuItem
+                      key={code}
+                      onClick={() => setCurrency(code)}
+                      className="gap-2 cursor-pointer"
+                    >
+                      <span className="font-semibold w-5">{info.symbol}</span>
+                      <span className="flex-1">
+                        <span className="font-medium">{code}</span>
+                        <span className="text-[10px] text-muted-foreground ml-1.5">{info.name}</span>
+                      </span>
+                      {code === currency && (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                      )}
+                    </DropdownMenuItem>
+                  );
+                })}
+                <DropdownMenuSeparator />
+                <div className="px-2 py-1.5 text-[10px] text-muted-foreground">
+                  Rates fetched live from open.er-api.com · cached 1 hour.
+                  Engine math always in INR.
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">

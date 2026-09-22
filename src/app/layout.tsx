@@ -16,12 +16,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ApexStrategy Enterprise — Corporate Business Simulation",
   description:
-    "A modern, production-ready multi-department corporate business simulation. Outperform legacy tools like Capsim and BSG with reactive live proformas, sleek financial-terminal UI, and zero-setup requirements.",
+    "A modern, multi-department corporate business simulation platform with reactive live proformas, multi-currency support, AI competitors, and a sleek financial-terminal UI. Zero setup required.",
   keywords: [
     "ApexStrategy",
     "Business Simulation",
-    "Capsim Alternative",
-    "BSG Alternative",
     "Corporate Strategy",
     "Proforma",
     "Next.js",

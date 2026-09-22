@@ -22,6 +22,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import { useGame, buildDefaultDraftDecisions } from "@/context/GameContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,7 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { computeLiveProforma } from "@/engine/simulationEngine";
-import { fmtMoney, fmtPct, fmtNum } from "@/lib/format";
+import { fmtPct, fmtNum } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const SEGMENT_LABELS: Record<string, string> = {
@@ -43,6 +44,7 @@ const SEGMENT_LABELS: Record<string, string> = {
 
 export function MarketingView() {
   const { state, activeTeamId, draftDecisions, updateProductDecision, resetDraftToDefaults, importDecisionFromAI, toast } = useGame();
+  const { fmtMoney } = useCurrency();
 
   const activeTeam = state?.teams.find((t) => t.id === activeTeamId) ?? state?.teams[0];
   const teamProducts = state?.products.filter((p) => p.teamId === activeTeam?.id) ?? [];

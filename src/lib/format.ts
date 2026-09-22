@@ -1,19 +1,22 @@
 /**
  * ApexStrategy Enterprise — Shared UI helpers
- * Money is in $000s throughout the engine. These helpers
- * format numbers for display.
+ *
+ * Money is in INR thousands throughout the engine. These helpers
+ * are fallback formatters; the live app uses useCurrency().fmtMoney
+ * for proper multi-currency display.
  */
 
+import type { CurrencyCode } from "@/context/CurrencyContext";
+import { formatMoneyStatic } from "@/context/CurrencyContext";
+
 export function fmtMoney(v: number, opts: { compact?: boolean } = {}): string {
-  if (opts.compact) {
-    if (Math.abs(v) >= 1_000_000) return `$${(v / 1_000_000).toFixed(2)}B`;
-    if (Math.abs(v) >= 1_000) return `$${(v / 1_000).toFixed(1)}M`;
-  }
-  return `$${v.toLocaleString("en-US", { maximumFractionDigits: 0 })}K`;
+  // Fallback static format in INR — views should prefer useCurrency().fmtMoney
+  void opts;
+  return formatMoneyStatic(v, "INR");
 }
 
 export function fmtMoneyRaw(v: number): string {
-  return `$${v.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+  return formatMoneyStatic(v, "INR");
 }
 
 export function fmtPct(v: number, digits = 1): string {
@@ -25,10 +28,14 @@ export function fmtNum(v: number): string {
 }
 
 export function fmtPrice(v: number): string {
-  return `$${v.toFixed(2)}`;
+  // Per-unit price (in INR thousands)
+  return formatMoneyStatic(v, "INR");
 }
 
 export function fmtSigned(v: number, suffix = "K"): string {
   const s = v >= 0 ? "+" : "";
   return `${s}$${Math.abs(v).toLocaleString("en-US", { maximumFractionDigits: 0 })}${suffix}`;
 }
+
+// Currency code type re-export
+export type { CurrencyCode };

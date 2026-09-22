@@ -98,12 +98,16 @@ export function FinancialChart({
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: "var(--popover)",
-            border: "1px solid var(--border)",
+            backgroundColor: "rgb(17 24 39)",
+            border: "1px solid rgb(55 65 81)",
             borderRadius: "0.5rem",
-            color: "var(--popover-foreground)",
+            color: "rgb(243 244 246)",
             fontSize: 12,
+            boxShadow: "0 10px 25px -5px rgb(0 0 0 / 0.4)",
+            padding: "8px 12px",
           }}
+          labelStyle={{ color: "rgb(156 163 175)", fontSize: 11, marginBottom: 4 }}
+          itemStyle={{ color: "rgb(243 244 246)" }}
           formatter={(value: number) => [cfg.format(value), cfg.label]}
         />
         <Legend

@@ -2,9 +2,9 @@
  * ApexStrategy Enterprise — Simulation Engine
  * =====================================================
  * Client-side business simulation math. Runs entirely in
- * the browser. No server, no DB. Mirrors the structure of
- * Capsim/BSG but with a cleaner, weighted-attractiveness
- * demand model and full financial statements.
+ * the browser. No server, no DB. Uses a weighted-attractiveness
+ * demand model with full financial statements and integrated
+ * Strategy, R&D, Marketing, Operations, HR, and Finance modules.
  *
  *  ┌────────────────────────────────────────────────┐
  *  │  DEMAND MODEL (weighted attractiveness)        │
@@ -136,7 +136,7 @@ export function createDefaultTeams(): Team[] {
   return [
     {
       id: "team-apex",
-      name: "Apex Corp",
+      name: "Bharat Apex Industries",
       color: TEAM_COLORS[0],
       isPlayer: true,
       isAI: false,
@@ -144,7 +144,7 @@ export function createDefaultTeams(): Team[] {
     },
     {
       id: "team-vanguard",
-      name: "Vanguard Industries",
+      name: "Vanguard Maharaj Pvt Ltd",
       color: TEAM_COLORS[1],
       isPlayer: false,
       isAI: true,
@@ -152,7 +152,7 @@ export function createDefaultTeams(): Team[] {
     },
     {
       id: "team-helios",
-      name: "Helios Systems",
+      name: "Helios Bharat Systems",
       color: TEAM_COLORS[2],
       isPlayer: false,
       isAI: true,
@@ -160,7 +160,7 @@ export function createDefaultTeams(): Team[] {
     },
     {
       id: "team-novus",
-      name: "Novus Dynamics",
+      name: "Novus Dynamics India",
       color: TEAM_COLORS[3],
       isPlayer: false,
       isAI: true,
@@ -184,7 +184,9 @@ export function createDefaultProducts(teams: Team[]): Product[] {
 
   for (const team of teams) {
     for (const seg of segmentList) {
-      const productPrefix = team.name.split(" ")[0].slice(0, 3).toUpperCase();
+      // Use first letters of first two words for a brand-like prefix
+      const words = team.name.split(/\s+/).filter(Boolean);
+      const productPrefix = (words[0]?.[0] ?? "X") + (words[1]?.[0] ?? "X") + (words[2]?.[0] ?? "X");
       const productLetter = seg.id === "traditional" ? "T"
         : seg.id === "low_end" ? "L"
         : seg.id === "high_end" ? "H"
@@ -340,17 +342,26 @@ export function createRound0Snapshot(state: GameState): RoundHistoryEntry {
  * Compute the attractiveness score (0-1) of a product within
  * its segment based on the weighted formula:
  *   Price (35%) + Age/Positioning (25%) + R&D/MTBF (20%) + Marketing (20%)
+ *
+ * Optional Strategy decision applies a focus-segment bonus (+10% per
+ * focused segment) and brand-investment awareness lift.
  */
 export function computeAttractiveness(
   product: Product,
   segment: Segment,
-  decision: ProductDecision | undefined
+  decision: ProductDecision | undefined,
+  strategy?: { focusSegments?: SegmentId[]; brandInvestment?: number; esgInvestment?: number; allianceTier?: number }
 ): { score: number; factors: DemandCalculation["factors"] } {
   const price = decision?.price ?? product.price;
   const mtbf = decision?.mtbf ?? product.mtbf;
   const position = decision?.position ?? product.position;
-  const promoBudget = decision?.promoBudget ?? 0;
+  let promoBudget = decision?.promoBudget ?? 0;
   const salesBudget = decision?.salesBudget ?? 0;
+
+  // Strategy: brand investment adds to effective promo budget (lifts awareness)
+  if (strategy?.brandInvestment) {
+    promoBudget += strategy.brandInvestment / 5; // brand investment counts 20% as much as direct promo
+  }
 
   // ── Price factor (35%) ───────────────────────────
   // Lower price → higher score. Score decays quadratically
@@ -390,11 +401,24 @@ export function computeAttractiveness(
   );
   const marketingScore = (projectedAwareness / 100) * 0.5 + (projectedAccessibility / 100) * 0.5;
 
-  const score =
+  let score =
     priceScore * 0.35 +
     posScore * 0.25 +
     mtbfScore * 0.20 +
     marketingScore * 0.20;
+
+  // Strategy: focus-segment bonus (+8% per focused segment, capped)
+  if (strategy?.focusSegments?.includes(segment.id)) {
+    score = score * 1.08;
+  }
+  // Strategy: ESG investment gives small long-term boost to score
+  if (strategy?.esgInvestment) {
+    score = score * (1 + Math.min(0.04, strategy.esgInvestment / 25000));
+  }
+  // Strategy: alliance tier gives small boost
+  if (strategy?.allianceTier) {
+    score = score * (1 + strategy.allianceTier * 0.015);
+  }
 
   return {
     score: clamp01(score),
@@ -414,10 +438,10 @@ export function computeAttractiveness(
  */
 export function computeDemandForSegment(
   segment: Segment,
-  competingProducts: { product: Product; decision?: ProductDecision }[]
+  competingProducts: { product: Product; decision?: ProductDecision; strategy?: { focusSegments?: SegmentId[]; brandInvestment?: number; esgInvestment?: number; allianceTier?: number } }[]
 ): DemandCalculation[] {
-  const results = competingProducts.map(({ product, decision }) => {
-    const { score, factors } = computeAttractiveness(product, segment, decision);
+  const results = competingProducts.map(({ product, decision, strategy }) => {
+    const { score, factors } = computeAttractiveness(product, segment, decision, strategy);
     return { product, decision, score, factors };
   });
 
@@ -453,17 +477,46 @@ export function computeDemandForSegment(
 // =====================================================
 
 /**
- * Recompute unit cost given an R&D investment and automation level.
- * Higher automation → lower labor cost (but harder to retool).
- * Higher material cost → higher unit cost.
+ * Recompute unit cost given an R&D investment, automation level, and
+ * (optionally) HR and Operations decisions.
+ *
+ *   - Higher automation → lower labor cost (but harder to retool).
+ *   - Higher R&D level → small material efficiency boost.
+ *   - Higher HR compensation/training → productivity boost (lower unit cost).
+ *   - Higher Operations lean investment → waste reduction (lower unit cost).
+ *
+ * The HR and Operations params are optional to preserve backward compatibility
+ * with the simpler per-product preview path.
  */
-export function computeUnitCost(product: Product, decision?: ProductDecision): number {
+export function computeUnitCost(
+  product: Product,
+  decision?: ProductDecision,
+  hr?: { compensationIndex?: number; trainingInvestment?: number; performanceBonus?: number },
+  ops?: { leanInvestment?: number; supplierInvestment?: number }
+): number {
   // R&D investment subtly improves material efficiency at high levels
   const efficiencyBoost = Math.min(0.15, (product.rndLevel / 100) * 0.15);
   const materialCost = product.materialCost * (1 - efficiencyBoost);
-  const laborCost = BASE_LABOR_COST / (1 + (product.automation - 1) * 0.15);
+  let laborCost = BASE_LABOR_COST / (1 + (product.automation - 1) * 0.15);
+
+  // HR effects: higher compensation = higher cost, but training & bonuses
+  // boost productivity (reducing effective labor cost)
+  if (hr) {
+    const compPenalty = (hr.compensationIndex ?? 1) - 1; // +10% comp = +10% labor cost
+    const trainingBoost = Math.min(0.15, (hr.trainingInvestment ?? 0) / 4000); // up to -15%
+    const bonusBoost = Math.min(0.08, (hr.performanceBonus ?? 0) / 4000); // up to -8%
+    laborCost = laborCost * (1 + compPenalty) * (1 - trainingBoost - bonusBoost);
+  }
+
+  // Operations: lean investment reduces waste (effectively material cost)
+  let wasteAdjustedMaterial = materialCost;
+  if (ops) {
+    const leanReduction = Math.min(0.12, (ops.leanInvestment ?? 0) / 5000); // up to -12%
+    wasteAdjustedMaterial = materialCost * (1 - leanReduction);
+  }
+
   const carryingCost = CARRYING_COST_PER_UNIT;
-  return materialCost + laborCost + carryingCost;
+  return wasteAdjustedMaterial + laborCost + carryingCost;
 }
 
 // =====================================================
@@ -517,7 +570,7 @@ export function processRound(state: GameState, allDecisions: TeamDecisions[]): G
   // 3. Compute demand per segment across all teams
   const segmentDemandResults = new Map<SegmentId, DemandCalculation[]>();
   for (const seg of newState.segments) {
-    const competing: { product: Product; decision?: ProductDecision }[] = [];
+    const competing: { product: Product; decision?: ProductDecision; strategy?: { focusSegments?: SegmentId[]; brandInvestment?: number; esgInvestment?: number; allianceTier?: number } }[] = [];
     for (const team of newState.teams) {
       const teamProducts = newState.products.filter(
         (p) => p.teamId === team.id && p.segment === seg.id
@@ -525,7 +578,7 @@ export function processRound(state: GameState, allDecisions: TeamDecisions[]): G
       const td = decisionsByTeam.get(team.id);
       for (const p of teamProducts) {
         const pd = td?.productDecisions.find((d) => d.productId === p.id);
-        competing.push({ product: p, decision: pd });
+        competing.push({ product: p, decision: pd, strategy: td?.strategy });
       }
     }
     segmentDemandResults.set(seg.id, computeDemandForSegment(seg, competing));
@@ -667,7 +720,9 @@ function computeTeamRoundResult(
     const demand = segmentDemandResults.get(p.segment)?.find((d) => d.productId === p.id);
     const unitsSold = demand?.unitsSold ?? 0;
     const revenue = unitsSold * (pd?.price ?? p.price);
-    const unitCost = computeUnitCost(p, pd);
+    // Pass HR + Operations decisions to unit cost so productivity
+    // and lean benefits flow through to COGS.
+    const unitCost = computeUnitCost(p, pd, decisions?.hr, pd);
     const segment = state.segments.find((s) => s.id === p.segment)!;
     const segmentShare = (unitsSold / Math.max(segment.totalDemand, 1)) * 100;
     const customerScore = (demand?.attractivenessScore ?? 0) * 100;
@@ -692,17 +747,39 @@ function computeTeamRoundResult(
   const grossMargin = totalRevenue - totalCOGS;
 
   // ── Operating expenses ───────────────────────────
+  // R&D, Marketing, Sales (per-product) + Strategy + HR + Operations overhead
   const rndExpense = (decisions?.productDecisions ?? []).reduce(
     (s, d) => s + d.rndInvestment + d.automationInvestment * 0.5 + d.capacityInvestment * 0.1,
     0
-  );
+  ) + (decisions?.strategy?.pipelineInvestment ?? 0);
   const marketingExpense = (decisions?.productDecisions ?? []).reduce(
     (s, d) => s + d.promoBudget,
     0
-  );
+  ) + (decisions?.strategy?.brandInvestment ?? 0);
   const salesExpense = (decisions?.productDecisions ?? []).reduce(
     (s, d) => s + d.salesBudget,
     0
+  );
+  // Operations expenses: lean + supplier reliability investments
+  const operationsExpense = (decisions?.productDecisions ?? []).reduce(
+    (s, d) => s + d.leanInvestment + d.supplierInvestment,
+    0
+  );
+  // HR expenses: training + benefits + hiring + performance bonus + compensation uplift
+  const hrExpense = (decisions?.hr
+    ? (decisions.hr.trainingInvestment
+      + decisions.hr.benefitsInvestment
+      + decisions.hr.hiringInvestment
+      + decisions.hr.performanceBonus
+      // Compensation uplift applies to base labor cost (approximated as 60% of COGS)
+      + Math.max(0, (decisions.hr.compensationIndex - 1) * totalCOGS * 0.6)
+    )
+    : 0
+  );
+  // Strategy expenses: ESG + alliance fees
+  const strategyExpense = (decisions?.strategy
+    ? decisions.strategy.esgInvestment + decisions.strategy.allianceTier * 200
+    : 0
   );
   const adminExpense = ADMIN_EXPENSE_BASE + totalRevenue * 0.02;
 
@@ -714,7 +791,7 @@ function computeTeamRoundResult(
   const plantBase = prevBalance.plantAndEquipment + newInvestment;
   const depreciation = plantBase / DEPRECIATION_YEARS;
 
-  const operatingProfit = grossMargin - rndExpense - marketingExpense - salesExpense - adminExpense - depreciation;
+  const operatingProfit = grossMargin - rndExpense - marketingExpense - salesExpense - adminExpense - depreciation - operationsExpense - hrExpense - strategyExpense;
 
   // ── Interest & emergency loan ────────────────────
   const interestExpense =
@@ -949,7 +1026,7 @@ function computeTeamRoundResult(
 /**
  * Generates a sensible default decision set for AI-controlled
  * teams. Difficulty drives how aggressive / well-tuned the
- * decisions are.
+ * decisions are. Includes Strategy, HR, and Operations decisions.
  */
 export function generateAIDecisions(
   team: Team,
@@ -982,6 +1059,9 @@ export function generateAIDecisions(
     const rndInvestment = (p.age > 2 ? 1200 : 600) * difficultyFactor;
     const automationInvestment = (p.segment === "low_end" || p.segment === "traditional" ? 800 : 200) * difficultyFactor;
     const capacityInvestment = production > p.capacity ? (production - p.capacity) * 0.5 : 0;
+    // Operations: hard AI invests more in lean & supplier reliability
+    const leanInvestment = (p.segment === "low_end" || p.segment === "traditional" ? 400 : 200) * difficultyFactor;
+    const supplierInvestment = 300 * difficultyFactor;
 
     return {
       productId: p.id,
@@ -994,8 +1074,31 @@ export function generateAIDecisions(
       rndInvestment: Math.round(rndInvestment),
       automationInvestment: Math.round(automationInvestment),
       capacityInvestment: Math.round(capacityInvestment),
+      leanInvestment: Math.round(leanInvestment),
+      supplierInvestment: Math.round(supplierInvestment),
     };
   });
+
+  // Strategy: hard AI focuses on 2-3 segments and invests in ESG/brand
+  const allSegs: SegmentId[] = ["traditional", "low_end", "high_end", "performance", "size"];
+  const focusCount = team.aiDifficulty === "hard" ? 3 : team.aiDifficulty === "medium" ? 2 : 1;
+  const focusSegments = [...allSegs].sort(() => Math.random() - 0.5).slice(0, focusCount);
+  const strategy = {
+    focusSegments,
+    esgInvestment: Math.round(500 * difficultyFactor),
+    pipelineInvestment: Math.round(800 * difficultyFactor),
+    allianceTier: team.aiDifficulty === "hard" ? 2 : 1,
+    brandInvestment: Math.round(600 * difficultyFactor),
+  };
+
+  // HR: hard AI pays above market and invests in training
+  const hr = {
+    compensationIndex: 1.0 + 0.05 * difficultyFactor + Math.random() * 0.05,
+    trainingInvestment: Math.round(700 * difficultyFactor),
+    benefitsInvestment: Math.round(400 * difficultyFactor),
+    hiringInvestment: Math.round(300 * difficultyFactor),
+    performanceBonus: Math.round(500 * difficultyFactor),
+  };
 
   const finance: FinanceDecision = {
     shortTermDebt: 0,
@@ -1008,6 +1111,8 @@ export function generateAIDecisions(
     teamId: team.id,
     round: _round,
     productDecisions,
+    strategy,
+    hr,
     finance,
   };
 }
@@ -1072,22 +1177,22 @@ export function computeLiveProforma(
     const pd = draftDecisions.productDecisions.find((d) => d.productId === p.id);
 
     // Gather all competitors (including this product) using last-known decisions
-    const competitors: { product: Product; decision?: ProductDecision }[] = [];
+    const competitors: { product: Product; decision?: ProductDecision; strategy?: { focusSegments?: SegmentId[]; brandInvestment?: number; esgInvestment?: number; allianceTier?: number } }[] = [];
     for (const otherP of state.products.filter((pr) => pr.segment === seg.id)) {
       if (otherP.id === p.id) {
-        competitors.push({ product: otherP, decision: pd });
+        competitors.push({ product: otherP, decision: pd, strategy: draftDecisions.strategy });
       } else {
         // Use last known decision for competitors
         const lastDec = state.decisions[`${otherP.teamId}_${state.currentRound}`];
         const otherPd = lastDec?.productDecisions.find((d) => d.productId === otherP.id);
-        competitors.push({ product: otherP, decision: otherPd });
+        competitors.push({ product: otherP, decision: otherPd, strategy: lastDec?.strategy });
       }
     }
     const demandResults = computeDemandForSegment(seg, competitors);
     const myDemand = demandResults.find((d) => d.productId === p.id)!;
 
     const price = pd?.price ?? p.price;
-    const unitCost = computeUnitCost(p, pd);
+    const unitCost = computeUnitCost(p, pd, draftDecisions.hr, pd);
     const revenue = myDemand.unitsSold * price;
     const grossMargin = revenue - myDemand.unitsSold * unitCost;
 
@@ -1105,6 +1210,8 @@ export function computeLiveProforma(
   const totalCOGS = productProjections.reduce(
     (s, r) => s + r.projectedUnitsSold * computeUnitCost(
       teamProducts.find((p) => p.id === r.productId)!,
+      draftDecisions.productDecisions.find((d) => d.productId === r.productId),
+      draftDecisions.hr,
       draftDecisions.productDecisions.find((d) => d.productId === r.productId)
     ),
     0
@@ -1114,9 +1221,25 @@ export function computeLiveProforma(
   const rndExpense = draftDecisions.productDecisions.reduce(
     (s, d) => s + d.rndInvestment + d.automationInvestment * 0.5 + d.capacityInvestment * 0.1,
     0
-  );
-  const marketingExpense = draftDecisions.productDecisions.reduce((s, d) => s + d.promoBudget, 0);
+  ) + (draftDecisions.strategy?.pipelineInvestment ?? 0);
+  const marketingExpense = draftDecisions.productDecisions.reduce((s, d) => s + d.promoBudget, 0)
+    + (draftDecisions.strategy?.brandInvestment ?? 0);
   const salesExpense = draftDecisions.productDecisions.reduce((s, d) => s + d.salesBudget, 0);
+  const operationsExpense = draftDecisions.productDecisions.reduce(
+    (s, d) => s + d.leanInvestment + d.supplierInvestment,
+    0
+  );
+  const hrExpense = draftDecisions.hr
+    ? (draftDecisions.hr.trainingInvestment
+      + draftDecisions.hr.benefitsInvestment
+      + draftDecisions.hr.hiringInvestment
+      + draftDecisions.hr.performanceBonus
+      + Math.max(0, (draftDecisions.hr.compensationIndex - 1) * totalCOGS * 0.6)
+    )
+    : 0;
+  const strategyExpense = draftDecisions.strategy
+    ? draftDecisions.strategy.esgInvestment + draftDecisions.strategy.allianceTier * 200
+    : 0;
   const adminExpense = ADMIN_EXPENSE_BASE + totalRevenue * 0.02;
   const newInvestment = draftDecisions.productDecisions.reduce(
     (s, d) => s + d.automationInvestment + d.capacityInvestment,
@@ -1125,7 +1248,7 @@ export function computeLiveProforma(
   const plantBase = (prevBalance?.plantAndEquipment ?? 18000) + newInvestment;
   const depreciation = plantBase / DEPRECIATION_YEARS;
 
-  const operatingProfit = grossMargin - rndExpense - marketingExpense - salesExpense - adminExpense - depreciation;
+  const operatingProfit = grossMargin - rndExpense - marketingExpense - salesExpense - adminExpense - depreciation - operationsExpense - hrExpense - strategyExpense;
 
   const shortTermDebt = prevBalance?.shortTermDebt ?? 0;
   const longTermDebt = prevBalance?.longTermDebt ?? 6000;

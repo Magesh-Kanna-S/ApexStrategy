@@ -95,12 +95,16 @@ export function MarketShareChart({
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "var(--popover)",
-              border: "1px solid var(--border)",
+              backgroundColor: "rgb(17 24 39)",
+              border: "1px solid rgb(55 65 81)",
               borderRadius: "0.5rem",
-              color: "var(--popover-foreground)",
+              color: "rgb(243 244 246)",
               fontSize: 12,
+              boxShadow: "0 10px 25px -5px rgb(0 0 0 / 0.4)",
+              padding: "8px 12px",
             }}
+            labelStyle={{ color: "rgb(156 163 175)", fontSize: 11, marginBottom: 4 }}
+            itemStyle={{ color: "rgb(243 244 246)" }}
             formatter={(value: number, name: string) => [`${value.toFixed(1)}%`, name]}
           />
           <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} iconType="circle" />
@@ -143,10 +147,17 @@ export function MarketShareChart({
           innerRadius={60}
           outerRadius={100}
           paddingAngle={2}
-          label={(d: { value: number; name: string }) =>
-            `${d.name}: ${((d.value / total) * 100).toFixed(1)}%`
-          }
-          labelLine={false}
+          label={(d: { value: number; name: string }) => (
+            <text
+              fill="rgb(243 244 246)"
+              fontSize={11}
+              fontWeight={600}
+              style={{ textShadow: "0 1px 3px rgb(0 0 0 / 0.6)" }}
+            >
+              {d.name}: {((d.value / total) * 100).toFixed(1)}%
+            </text>
+          )}
+          labelLine={{ stroke: "rgb(156 163 175)", strokeWidth: 1 }}
         >
           {pieData.map((d) => (
             <Cell key={d.name} fill={d.color} stroke="var(--background)" strokeWidth={2} />
@@ -154,12 +165,16 @@ export function MarketShareChart({
         </Pie>
         <Tooltip
           contentStyle={{
-            backgroundColor: "var(--popover)",
-            border: "1px solid var(--border)",
+            backgroundColor: "rgb(17 24 39)",
+            border: "1px solid rgb(55 65 81)",
             borderRadius: "0.5rem",
-            color: "var(--popover-foreground)",
+            color: "rgb(243 244 246)",
             fontSize: 12,
+            boxShadow: "0 10px 25px -5px rgb(0 0 0 / 0.4)",
+            padding: "8px 12px",
           }}
+          labelStyle={{ color: "rgb(156 163 175)", fontSize: 11, marginBottom: 4 }}
+          itemStyle={{ color: "rgb(243 244 246)" }}
           formatter={(value: number, name: string) => [`${value.toLocaleString()} units`, name]}
         />
       </PieChart>

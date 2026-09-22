@@ -26,17 +26,19 @@ import {
   Info,
 } from "lucide-react";
 import { useGame } from "@/context/GameContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { FinancialChart } from "@/components/charts/FinancialChart";
 import { MarketShareChart } from "@/components/charts/MarketShareChart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { fmtMoney, fmtPct, fmtPrice, fmtNum } from "@/lib/format";
+import { fmtPct, fmtPrice, fmtNum } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { GameAlert } from "@/types/game";
 
 export function DashboardView() {
   const { state, activeTeamId, setView, processNextRound, canProcessRound } = useGame();
+  const { fmtMoney, fmtPrice: fmtCurrencyPrice } = useCurrency();
   if (!state) return null;
 
   const activeTeam = state.teams.find((t) => t.id === activeTeamId) ?? state.teams[0];
@@ -146,9 +148,9 @@ export function DashboardView() {
         />
         <Scorecard
           label="Stock Price"
-          value={fmtPrice(m.stockPrice)}
+          value={fmtCurrencyPrice(m.stockPrice)}
           delta={deltas.stockPrice}
-          deltaLabel={prevM ? `${deltas.stockPrice >= 0 ? "+" : ""}$${deltas.stockPrice.toFixed(2)}` : "—"}
+          deltaLabel={prevM ? `${deltas.stockPrice >= 0 ? "+" : "-"}${fmtCurrencyPrice(Math.abs(deltas.stockPrice))}` : "—"}
           icon={<TrendingUp className="h-4 w-4" />}
           color="#a855f7"
           onClick={() => setView("results")}
@@ -298,7 +300,7 @@ export function DashboardView() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold tabular-nums text-sm">{fmtPrice(stock)}</div>
+                      <div className="font-semibold tabular-nums text-sm">{fmtCurrencyPrice(stock)}</div>
                       <div className="text-[10px] text-muted-foreground">stock</div>
                     </div>
                   </div>
@@ -351,7 +353,7 @@ export function DashboardView() {
                   <tr key={p.productId} className="border-b border-border/30 hover:bg-muted/30">
                     <td className="py-2 pr-4 font-medium">{p.productName}</td>
                     <td className="py-2 pr-4 capitalize text-muted-foreground">{p.segment.replace("_", " ")}</td>
-                    <td className="py-2 pr-4 text-right tabular-nums">{fmtPrice(p.price)}</td>
+                    <td className="py-2 pr-4 text-right tabular-nums">{fmtCurrencyPrice(p.price)}</td>
                     <td className="py-2 pr-4 text-right tabular-nums">{fmtNum(p.unitsSold)}</td>
                     <td className="py-2 pr-4 text-right tabular-nums">{fmtMoney(p.revenue)}</td>
                     <td className="py-2 pr-4 text-right tabular-nums">{fmtPct(p.marketShare)}</td>

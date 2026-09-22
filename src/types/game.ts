@@ -103,26 +103,64 @@ export interface ProductDecision {
   position: { x: number; y: number };
   /** Production schedule (units to build) */
   production: number;
-  /** Marketing spend for promo (in $000s) */
+  /** Marketing spend for promo (in ₹000s) */
   promoBudget: number;
-  /** Sales force spend (in $000s) */
+  /** Sales force spend (in ₹000s) */
   salesBudget: number;
-  /** R&D project investment (in $000s) — pushes position/MTBF */
+  /** R&D project investment (in ₹000s) — pushes position/MTBF */
   rndInvestment: number;
-  /** Automation investment (in $000s) — reduces labor cost */
+  /** Automation investment (in ₹000s) — reduces labor cost */
   automationInvestment: number;
-  /** Capacity investment (in $000s) — adds plant capacity */
+  /** Capacity investment (in ₹000s) — adds plant capacity */
   capacityInvestment: number;
+  /** Operations: lean/six-sigma investment (₹000s) — reduces waste */
+  leanInvestment: number;
+  /** Operations: supplier reliability investment (₹000s) — reduces stockouts */
+  supplierInvestment: number;
+}
+
+/**
+ * Strategic decisions at the corporate level (per team per round).
+ * Feeds back into segment attractiveness and long-term score.
+ */
+export interface StrategyDecision {
+  /** Segments the team will prioritize this round (bonus attractiveness) */
+  focusSegments: SegmentId[];
+  /** ESG / sustainability investment (₹000s) — small long-term boost */
+  esgInvestment: number;
+  /** R&D pipeline investment for future products (₹000s) */
+  pipelineInvestment: number;
+  /** Strategic alliance tier (0 = none, 1 = basic, 2 = advanced) */
+  allianceTier: number;
+  /** Brand-building investment (₹000s) — boosts all products' awareness slightly */
+  brandInvestment: number;
+}
+
+/**
+ * HR decisions at the corporate level (per team per round).
+ * Affects productivity, turnover, and unit cost.
+ */
+export interface HrDecision {
+  /** Compensation level multiplier (1.0 = market rate, 1.1 = +10%) */
+  compensationIndex: number;
+  /** Training investment (₹000s) — boosts productivity */
+  trainingInvestment: number;
+  /** Benefits & wellness investment (₹000s) — reduces turnover */
+  benefitsInvestment: number;
+  /** Hiring investment (₹000s) — supports capacity expansion */
+  hiringInvestment: number;
+  /** Performance bonus pool (₹000s) — short-term productivity boost */
+  performanceBonus: number;
 }
 
 export interface FinanceDecision {
-  /** Short-term debt to issue (or repay if negative) in $000s */
+  /** Short-term debt to issue (or repay if negative) in ₹000s */
   shortTermDebt: number;
-  /** Long-term debt to issue (in $000s) */
+  /** Long-term debt to issue (in ₹000s) */
   longTermDebt: number;
-  /** Equity to issue (in $000s) */
+  /** Equity to issue (in ₹000s) */
   equityIssue: number;
-  /** Dividend per share (in $) */
+  /** Dividend per share (in ₹) */
   dividendPerShare: number;
 }
 
@@ -130,6 +168,8 @@ export interface TeamDecisions {
   teamId: string;
   round: number;
   productDecisions: ProductDecision[];
+  strategy: StrategyDecision;
+  hr: HrDecision;
   finance: FinanceDecision;
 }
 
@@ -286,9 +326,11 @@ export interface GameState {
 export type ViewId =
   | "landing"
   | "dashboard"
+  | "strategy"
   | "rnd"
   | "marketing"
-  | "production"
+  | "operations"
+  | "hr"
   | "finance"
   | "results";
 

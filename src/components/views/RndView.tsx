@@ -23,6 +23,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useGame, buildDefaultDraftDecisions } from "@/context/GameContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { computeLiveProforma, computeUnitCost, SIM_EMERGENCY_LOAN_RATE } from "@/engine/simulationEngine";
-import { fmtMoney, fmtPrice, fmtPct, fmtNum } from "@/lib/format";
+import { fmtPct, fmtNum } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const SEGMENT_LABELS: Record<string, string> = {
@@ -44,6 +45,7 @@ const SEGMENT_LABELS: Record<string, string> = {
 
 export function RndView() {
   const { state, activeTeamId, draftDecisions, updateProductDecision, resetDraftToDefaults, importDecisionFromAI, toast } = useGame();
+  const { fmtMoney, fmtPrice } = useCurrency();
 
   const [selectedId, setSelectedId] = React.useState<string>("");
 

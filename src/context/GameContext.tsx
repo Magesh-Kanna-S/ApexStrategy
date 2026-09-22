@@ -22,6 +22,8 @@ import type {
   ViewId,
   ProductDecision,
   FinanceDecision,
+  StrategyDecision,
+  HrDecision,
 } from "@/types/game";
 import {
   createDefaultProducts,
@@ -56,8 +58,26 @@ export function buildDefaultDraftDecisions(state: GameState, teamId: string): Te
       rndInvestment: p.age > 1.5 ? 800 : 400,
       automationInvestment: 0,
       capacityInvestment: 0,
+      leanInvestment: 0,
+      supplierInvestment: 0,
     };
   });
+
+  const strategy = {
+    focusSegments: ["traditional" as const, "high_end" as const],
+    esgInvestment: 0,
+    pipelineInvestment: 0,
+    allianceTier: 0,
+    brandInvestment: 0,
+  };
+
+  const hr = {
+    compensationIndex: 1.0,
+    trainingInvestment: 0,
+    benefitsInvestment: 0,
+    hiringInvestment: 0,
+    performanceBonus: 0,
+  };
 
   const finance: FinanceDecision = {
     shortTermDebt: 0,
@@ -70,6 +90,8 @@ export function buildDefaultDraftDecisions(state: GameState, teamId: string): Te
     teamId,
     round: state.currentRound + 1,
     productDecisions,
+    strategy,
+    hr,
     finance,
   };
 }
@@ -128,6 +150,8 @@ interface GameContextValue {
   draftDecisions: Record<string, TeamDecisions>; // keyed by teamId
   updateProductDecision: (teamId: string, productId: string, patch: Partial<ProductDecision>) => void;
   updateFinanceDecision: (teamId: string, patch: Partial<FinanceDecision>) => void;
+  updateStrategyDecision: (teamId: string, patch: Partial<StrategyDecision>) => void;
+  updateHrDecision: (teamId: string, patch: Partial<HrDecision>) => void;
   resetDraftToDefaults: (teamId: string) => void;
   importDecisionFromAI: (teamId: string) => void;
 
@@ -305,6 +329,40 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const updateStrategyDecision = React.useCallback(
+    (teamId: string, patch: Partial<StrategyDecision>) => {
+      setDraftDecisions((prev) => {
+        const teamDraft = prev[teamId];
+        if (!teamDraft) return prev;
+        return {
+          ...prev,
+          [teamId]: {
+            ...teamDraft,
+            strategy: { ...teamDraft.strategy, ...patch },
+          },
+        };
+      });
+    },
+    []
+  );
+
+  const updateHrDecision = React.useCallback(
+    (teamId: string, patch: Partial<HrDecision>) => {
+      setDraftDecisions((prev) => {
+        const teamDraft = prev[teamId];
+        if (!teamDraft) return prev;
+        return {
+          ...prev,
+          [teamId]: {
+            ...teamDraft,
+            hr: { ...teamDraft.hr, ...patch },
+          },
+        };
+      });
+    },
+    []
+  );
+
   const resetDraftToDefaults = React.useCallback(
     (teamId: string) => {
       if (!state) return;
@@ -393,6 +451,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     draftDecisions,
     updateProductDecision,
     updateFinanceDecision,
+    updateStrategyDecision,
+    updateHrDecision,
     resetDraftToDefaults,
     importDecisionFromAI,
     processNextRound,

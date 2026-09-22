@@ -1,8 +1,6 @@
 # ApexStrategy Enterprise
 
-A modern, production-ready, multi-department **corporate business simulation** web app — designed to outperform legacy tools like Capsim and BSG with a sleek financial-terminal UI, reactive live proformas, and **zero-setup requirements**.
-
-Runs entirely in the browser. No database. No API keys. No environment variables. Just `npm install && npm run dev`.
+A modern, production-ready, multi-department **corporate business simulation** platform — featuring reactive live proformas, multi-currency support (INR default, USD, plus live exchange rates), AI competitors, integrated MBA functional departments (Strategy, R&D, Marketing, Operations, HR, Finance), and a sleek financial-terminal UI. **Zero-setup** — runs entirely in the browser.
 
 ---
 
