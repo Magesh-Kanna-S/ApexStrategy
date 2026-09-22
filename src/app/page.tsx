@@ -2,16 +2,21 @@
 
 /**
  * ApexStrategy Enterprise — Root Page
- * Wires CurrencyProvider + GameProvider + Navigation + view router.
- * Uses in-app state-based view switching (no URL routes)
- * for instant client-side navigation and zero-setup.
+ * Wires AuthProvider + CurrencyProvider + GameProvider +
+ * Navigation + view router.
+ *
+ * Auth gate: if no user is signed in, render the AuthView
+ * (login / sign-up). Once authenticated, render the game
+ * shell with in-app state-based view switching.
  */
 
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { GameProvider, useGame } from "@/context/GameContext";
 import { Navigation } from "@/components/Navigation";
+import { AuthView } from "@/components/views/AuthView";
 import { LandingView } from "@/components/views/LandingView";
 import { DashboardView } from "@/components/views/DashboardView";
 import { RndView } from "@/components/views/RndView";
@@ -71,12 +76,40 @@ function GameShell() {
   );
 }
 
+function AuthGate() {
+  const { user, isLoaded } = useAuth();
+
+  // Loading state while session is being restored
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+          <div className="text-xs text-muted-foreground uppercase tracking-widest">
+            Loading session
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authenticated → show login / sign-up
+  if (!user) {
+    return <AuthView />;
+  }
+
+  // Authenticated → show the game shell
+  return <GameShell />;
+}
+
 export default function Home() {
   return (
-    <CurrencyProvider>
-      <GameProvider>
-        <GameShell />
-      </GameProvider>
-    </CurrencyProvider>
+    <AuthProvider>
+      <CurrencyProvider>
+        <GameProvider>
+          <AuthGate />
+        </GameProvider>
+      </CurrencyProvider>
+    </AuthProvider>
   );
 }

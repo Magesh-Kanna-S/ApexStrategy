@@ -52,3 +52,36 @@ Stage Summary:
 - ApexStrategy app is now 100% free of Z.ai / ZAI / chatglm references in user-visible code, metadata, and favicon.
 - Landing page footer now showcases the creator (Magesh Kanna S) with LinkedIn + Portfolio links, styled consistently with the app's dark financial-terminal aesthetic.
 - Only the creator card and footer text appear at the bottom of the landing page (not on dashboard or other tabs, per request).
+
+---
+Task ID: P3
+Agent: main (super-z)
+Task: Unify currency across charts + add login/logout with home navigation + generate final tour HTML.
+
+Work Log:
+- Currency unification:
+  * Found hardcoded `$` formatters in FinancialChart.tsx (METRIC_CONFIG). Rewrote the chart to use useCurrency().fmtMoney and fmtPrice so the Y-axis ticks and tooltips now follow the user's selected currency.
+  * Verified: with INR selected, chart axis shows "₹2.50 Cr / ₹5.00 Cr / ₹7.50 Cr / ₹10.00 Cr"; with USD selected, shows "$260.8K / $521.5K".
+  * Fixed LandingView saved-games list (hardcoded `$${stockPrice}` → fmtCurrencyPrice(stockPrice)).
+  * Fixed engine alert messages (emergency loan, operating loss) — `$` → `₹`.
+  * Replaced all "$000s" hints in view files with "₹000s" via sed.
+  * Deleted obsolete ProductionView.tsx (was renamed to OperationsView).
+- Authentication system:
+  * Created src/context/AuthContext.tsx — client-side auth with signUp, signIn, signOut. Credentials stored in localStorage (no server, no email). Session persists across reloads. Simple hash-based password obfuscation (educational, not production).
+  * Created src/components/views/AuthView.tsx — split-screen login/signup page. Left: brand hero with feature pills and stats. Right: form card with name/email/password fields, show/hide password toggle, error display, mode switch. Framer Motion entrance animations.
+  * Updated src/app/page.tsx — wrapped with AuthProvider, added AuthGate component that shows AuthView when not signed in, GameShell when authenticated.
+  * Updated src/components/Navigation.tsx — added Home button (exits current game, returns to landing) next to the brand, and a user avatar button (with initial letter) that opens a dropdown with "Back to Home" and "Sign Out" options. Avatar color comes from the user's stored avatarColor.
+  * Added goHome() to GameContext — clears the active game session and returns to landing view (saved games preserved).
+- Final tour HTML:
+  * Created /home/z/my-project/download/apex-strategy-tour-v2.html — updated tour with new sign-in act handler (fills demo account, submits form), new goHome act handler, and updated scripts.
+  * TOUR_QUICK now starts with a Sign In chapter (signs in with demo account) before launching the game.
+  * TOUR_FULL adds: Sign In chapter at start, Home & Account chapter near end (demos Home button + user menu), and updated outro narration mentioning client-side auth, Home/user menu, and creator credit.
+  * Outro card now includes a creator credit block (Magesh Kanna S with LinkedIn + Portfolio links).
+  * Updated outro stats (Departments / Currencies / AI Rivals / Rounds).
+  * Verified end-to-end in browser: tour runs from intro → sign-in → landing → dashboard → all 6 departments → process round → results → home/account → outro. All 19 stops complete successfully.
+
+Stage Summary:
+- Currency is now fully unified: when INR is selected, EVERYTHING shows in ₹ (KPIs, charts, tooltips, statements, alerts). When USD is selected, EVERYTHING shows in $. No more mixed currencies.
+- Authentication: users must sign in or sign up before reaching the landing page. Sessions persist. Home button + user avatar menu (with Sign Out) available in the game navbar.
+- Final tour HTML at /home/z/my-project/download/apex-strategy-tour-v2.html — open in Chrome/Edge with the dev server running. Choose Quick (~2 min) or Full (~5 min) tour.
+- Lint: clean. No runtime errors. All 19 tour stops verified.

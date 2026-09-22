@@ -5,6 +5,9 @@
  * Multi-line Recharts component for tracking financial
  * health (Revenue / Net Profit / Cash / Stock Price)
  * across all rounds for one or more teams.
+ *
+ * Currency-aware: uses the CurrencyContext to format
+ * monetary values in the user's selected display currency.
  */
 
 import * as React from "react";
@@ -19,6 +22,7 @@ import {
   YAxis,
 } from "recharts";
 import type { RoundHistoryEntry, Team } from "@/types/game";
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface FinancialChartProps {
   history: RoundHistoryEntry[];
@@ -30,18 +34,6 @@ interface FinancialChartProps {
   height?: number;
 }
 
-const METRIC_CONFIG: Record<
-  FinancialChartProps["metric"],
-  { label: string; color: string; format: (v: number) => string }
-> = {
-  revenue: { label: "Revenue", color: "#10b981", format: (v) => `$${(v).toFixed(0)}K` },
-  netProfit: { label: "Net Profit", color: "#06b6d4", format: (v) => `$${(v).toFixed(0)}K` },
-  cash: { label: "Cash", color: "#f59e0b", format: (v) => `$${(v).toFixed(0)}K` },
-  stockPrice: { label: "Stock Price", color: "#a855f7", format: (v) => `$${v.toFixed(2)}` },
-  netMargin: { label: "Net Margin %", color: "#ec4899", format: (v) => `${v.toFixed(1)}%` },
-  roe: { label: "ROE %", color: "#ef4444", format: (v) => `${v.toFixed(1)}%` },
-};
-
 export function FinancialChart({
   history,
   teams,
@@ -49,6 +41,39 @@ export function FinancialChart({
   teamIds,
   height = 280,
 }: FinancialChartProps) {
+  const { fmtMoney, fmtPrice } = useCurrency();
+
+  // Build config dynamically so the formatter is always current
+  const cfg = React.useMemo(() => {
+    const isPrice = metric === "stockPrice";
+    const isPct = metric === "netMargin" || metric === "roe";
+    const colorMap: Record<string, string> = {
+      revenue: "#10b981",
+      netProfit: "#06b6d4",
+      cash: "#f59e0b",
+      stockPrice: "#a855f7",
+      netMargin: "#ec4899",
+      roe: "#ef4444",
+    };
+    const labelMap: Record<string, string> = {
+      revenue: "Revenue",
+      netProfit: "Net Profit",
+      cash: "Cash",
+      stockPrice: "Stock Price",
+      netMargin: "Net Margin %",
+      roe: "ROE %",
+    };
+    return {
+      label: labelMap[metric],
+      color: colorMap[metric],
+      format: (v: number) => {
+        if (isPct) return `${v.toFixed(1)}%`;
+        if (isPrice) return fmtPrice(v);
+        return fmtMoney(v, { compact: true });
+      },
+    };
+  }, [metric, fmtMoney, fmtPrice]);
+
   const visibleTeams = teamIds
     ? teams.filter((t) => teamIds.includes(t.id))
     : teams;
@@ -73,8 +98,6 @@ export function FinancialChart({
     });
   }, [history, visibleTeams, metric]);
 
-  const cfg = METRIC_CONFIG[metric];
-
   return (
     <ResponsiveContainer width="100%" height={height}>
       <LineChart data={data} margin={{ top: 10, right: 24, bottom: 0, left: 0 }}>
@@ -93,8 +116,8 @@ export function FinancialChart({
           tick={{ fontSize: 11, fill: "currentColor" }}
           tickLine={false}
           axisLine={false}
-          tickFormatter={(v) => cfg.format(v).replace(/\.0+/, "")}
-          width={70}
+          tickFormatter={(v) => cfg.format(v).replace(/\.0+$/, "")}
+          width={75}
         />
         <Tooltip
           contentStyle={{

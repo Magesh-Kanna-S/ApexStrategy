@@ -26,9 +26,12 @@ import {
   ChevronDown,
   CheckCircle2,
   Coins,
+  Home,
+  LogOut,
 } from "lucide-react";
 import { useGame } from "@/context/GameContext";
 import { useCurrency, CURRENCIES } from "@/context/CurrencyContext";
+import { useAuth } from "@/context/AuthContext";
 import type { CurrencyCode } from "@/context/CurrencyContext";
 import type { ViewId } from "@/types/game";
 import { cn } from "@/lib/utils";
@@ -59,12 +62,14 @@ export function Navigation() {
     state,
     view,
     setView,
+    goHome,
     activeTeamId,
     setActiveTeamId,
     processNextRound,
     canProcessRound,
   } = useGame();
   const { currency, setCurrency, ratesLive } = useCurrency();
+  const { user, signOut } = useAuth();
 
   if (!state) return null;
 
@@ -73,30 +78,44 @@ export function Navigation() {
   const progressPct = (round / maxRounds) * 100;
   const activeTeam = state.teams.find((t) => t.id === activeTeamId) ?? state.teams[0];
   const currencyInfo = CURRENCIES[currency];
+  const userInitial = user?.name?.[0]?.toUpperCase() ?? "U";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto max-w-[1600px] px-4 lg:px-6">
         {/* ── Row 1: brand + round indicator + team + CTA ── */}
         <div className="flex h-16 items-center justify-between gap-4">
-          {/* Brand */}
-          <button
-            onClick={() => setView("dashboard")}
-            className="flex items-center gap-2.5 group"
-          >
-            <div className="relative grid place-items-center h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md">
-              <Building2 className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-chart-1 apex-live-dot" />
-            </div>
-            <div className="flex flex-col items-start leading-tight">
-              <span className="font-semibold text-sm tracking-tight">
-                ApexStrategy <span className="text-primary">Enterprise</span>
-              </span>
-              <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
-                Corporate Simulation
-              </span>
-            </div>
-          </button>
+          {/* Brand + Home button */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setView("dashboard")}
+              className="flex items-center gap-2.5 group"
+            >
+              <div className="relative grid place-items-center h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md">
+                <Building2 className="h-5 w-5" />
+                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-chart-1 apex-live-dot" />
+              </div>
+              <div className="flex flex-col items-start leading-tight">
+                <span className="font-semibold text-sm tracking-tight">
+                  ApexStrategy <span className="text-primary">Enterprise</span>
+                </span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
+                  Corporate Simulation
+                </span>
+              </div>
+            </button>
+            {/* Home button — exits current game and returns to landing */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={goHome}
+              className="gap-1.5 ml-1"
+              title="Back to home"
+            >
+              <Home className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Home</span>
+            </Button>
+          </div>
 
           {/* Round indicator (center, desktop only) */}
           <div className="hidden md:flex items-center gap-3 px-4 py-1.5 rounded-full bg-muted/50 border border-border/60">
@@ -244,6 +263,42 @@ export function Navigation() {
               </span>
               <span className="sm:hidden">Next</span>
             </Button>
+
+            {/* User avatar + logout */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="grid place-items-center h-9 w-9 rounded-full text-white font-bold text-sm shadow-md transition-transform hover:scale-105"
+                  style={{ background: user?.avatarColor ?? "var(--primary)" }}
+                  title={user?.name ? `Signed in as ${user.name}` : "Account"}
+                >
+                  {userInitial}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="text-xs">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-semibold text-foreground text-sm">{user?.name ?? "User"}</span>
+                    <span className="text-muted-foreground font-normal">{user?.email ?? ""}</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={goHome}
+                  className="gap-2 cursor-pointer"
+                >
+                  <Home className="h-3.5 w-3.5" />
+                  Back to Home
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={signOut}
+                  className="gap-2 cursor-pointer text-chart-3 focus:text-chart-3"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 

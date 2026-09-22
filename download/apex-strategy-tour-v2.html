@@ -267,13 +267,25 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--sans);backgro
         </div>
         <div class="oc-stats">
           <div><b>6</b><span>Departments</span></div>
-          <div><b>5</b><span>Segments</span></div>
           <div><b>7</b><span>Currencies</span></div>
           <div><b>3</b><span>AI Rivals</span></div>
+          <div><b>8</b><span>Rounds</span></div>
         </div>
         <div class="oc-div"></div>
         <div style="font-size:13px;color:#5B6470;line-height:1.6">
-          You&apos;ve seen the full workflow: corporate strategy, product R&amp;D, marketing budgets, lean operations, HR policy, capital structure, and round-end analytics — all with instant live proforma feedback and INR / USD multi-currency support.
+          You&apos;ve seen the full workflow: client-side authentication, corporate strategy, product R&amp;D, marketing budgets, lean operations, HR policy, capital structure, and round-end analytics — all with unified multi-currency support and instant live proforma feedback.
+        </div>
+        <div class="oc-div"></div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#06b6d4,#10b981);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex-shrink:0;">M</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#8A93A0;">Creator &amp; Designer</div>
+            <div style="font-size:15px;font-weight:800;color:#171B21;letter-spacing:-.02em;margin-top:1px;">Magesh Kanna S</div>
+            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+              <a href="https://www.linkedin.com/in/magesh-kanna-s/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:#06b6d4;background:#E8F8FB;border:1px solid #b6e9f0;border-radius:8px;padding:5px 10px;text-decoration:none;">LinkedIn</a>
+              <a href="https://magesh-kanna-s.github.io/portfolio/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:#10b981;background:#ECFDF5;border:1px solid #b6e9c0;border-radius:8px;padding:5px 10px;text-decoration:none;">Portfolio</a>
+            </div>
+          </div>
         </div>
         <div class="oc-replay">
           <span class="replaytxt" id="replayCnt">Auto-replay in 25s</span>
@@ -527,6 +539,61 @@ async function runAct(st, tok) {
     const buttons = doc.querySelectorAll('button');
     for (const b of buttons) {
       if (b.textContent.includes('Launch')) { b.click(); break; }
+    }
+  }
+
+  if (a === 'signIn') {
+    // Sign in with a demo account — fills the sign-in form and submits
+    await wait(1200);
+    if (tok !== runTok) return;
+    // Switch to sign-up mode if needed (look for "Sign up" link)
+    const links = doc.querySelectorAll('button');
+    for (const b of links) {
+      if (b.textContent.trim() === 'Sign up') { b.click(); await wait(700); break; }
+    }
+    // Fill name (sign-up only), email, password
+    const inputs = doc.querySelectorAll('input');
+    const nameInput = Array.from(inputs).find(i => i.type === 'text');
+    const emailInput = Array.from(inputs).find(i => i.type === 'email');
+    const passInput = Array.from(inputs).find(i => i.type === 'password');
+    if (nameInput) {
+      nameInput.focus();
+      nameInput.value = 'Tour Demo';
+      nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+      nameInput.dispatchEvent(new Event('change', { bubbles: true }));
+      await wait(300);
+    }
+    if (emailInput) {
+      emailInput.focus();
+      emailInput.value = 'tour.demo@example.com';
+      emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+      emailInput.dispatchEvent(new Event('change', { bubbles: true }));
+      await wait(300);
+    }
+    if (passInput) {
+      passInput.focus();
+      passInput.value = 'tourdemo123';
+      passInput.dispatchEvent(new Event('input', { bubbles: true }));
+      passInput.dispatchEvent(new Event('change', { bubbles: true }));
+      await wait(300);
+    }
+    await wait(800);
+    if (tok !== runTok) return;
+    // Click the submit button (Create Account or Sign In)
+    const btns = doc.querySelectorAll('button[type="submit"], button');
+    for (const b of btns) {
+      const t = (b.textContent || '').trim();
+      if (t === 'Create Account' || t === 'Sign In') { b.click(); break; }
+    }
+  }
+
+  if (a === 'goHome') {
+    // Click the Home button in the navigation
+    await wait(800);
+    if (tok !== runTok) return;
+    const btns = doc.querySelectorAll('button');
+    for (const b of btns) {
+      if (b.textContent.trim().includes('Home')) { b.click(); break; }
     }
   }
 
@@ -943,18 +1010,25 @@ document.addEventListener('keydown', e => {
 const TOUR_QUICK = [
 { ch: 'Welcome', stops: [
   { type: 'intro', t: 'ApexStrategy Enterprise — in 2 minutes',
-    say: "Welcome to ApexStrategy Enterprise — a multi-department corporate business simulation. In the next two minutes you'll see the dashboard, switch currencies between Indian Rupees and US Dollars, walk through one department with a live proforma, and process a round to watch the engine work." }
+    say: "Welcome to ApexStrategy Enterprise — a multi-department corporate business simulation. In the next two minutes you'll sign in, see the dashboard, switch currencies between Indian Rupees and US Dollars, walk through one department with a live proforma, and process a round to watch the engine work." }
+]},
+{ ch: 'Sign In', stops: [
+  { sel: 'h2', t: 'Authentication gate',
+    say: "ApexStrategy opens at the sign-in screen. Create an account or sign in — credentials are stored locally in your browser, no server, no email verification. The tour will create a demo account for you now.",
+    hl: [ { s: 'input[type="email"]', l: 'Email + password — local-only auth' } ],
+    act: 'signIn'
+  }
 ]},
 { ch: 'Landing & Launch', stops: [
   { sel: 'h1', t: 'The landing page',
-    say: "The landing page introduces the platform. A single button — Launch Simulation — boots a fully pre-configured game with four Indian companies, five market segments, and eight rounds. No setup required.",
+    say: "After signing in, you land on the home page. A single button — Launch Simulation — boots a fully pre-configured game with four Indian companies, five market segments, and eight rounds. No setup required.",
     hl: [ { s: 'button', l: 'Launch Simulation — one click' } ],
     act: 'newGame'
   }
 ]},
 { ch: 'Dashboard', stops: [
   { sel: 'h1', t: 'The Command Center',
-    say: "The dashboard is your command center. Five KPI scorecards show revenue, net profit, stock price, market share, and return on equity — each with a delta versus the previous round. The leaderboard on the left ranks all teams by stock price, and a market-share pie shows your slice of total demand.",
+    say: "The dashboard is your command center. Five KPI scorecards show revenue, net profit, stock price, market share, and return on equity — each with a delta versus the previous round. All values are in Indian Rupees by default, with Indian numbering — lakhs and crores.",
     hl: [
       { s: 'button:has(svg)', l: 'KPI scorecards — instant feedback' },
       { s: 'table', l: 'Product portfolio — every product line' }
@@ -962,8 +1036,8 @@ const TOUR_QUICK = [
   }
 ]},
 { ch: 'Multi-Currency', stops: [
-  { sel: 'header', t: 'Switching currencies — live',
-    say: "All financials support multiple currencies. The engine math always runs in Indian Rupees, but the display layer converts in real time. Watch as I switch from Rupees to US Dollars — every KPI, statement, and chart updates instantly, using live exchange rates fetched from a free public API.",
+  { sel: 'header', t: 'Switching currencies — unified',
+    say: "All financials support multiple currencies. The engine math always runs in Indian Rupees, but the display layer converts in real time — every KPI, statement, chart axis, and tooltip updates together. Watch as I switch from Rupees to US Dollars.",
     hl: [ { s: 'button', l: 'Currency switcher — ₹ / $ / € / £' } ],
     act: 'switchCurrency'
   }
@@ -985,7 +1059,7 @@ const TOUR_QUICK = [
 ]},
 { ch: 'Outro', stops: [
   { type: 'outro', t: 'That was ApexStrategy Enterprise',
-    say: "That's the two-minute tour. Six integrated MBA departments — Strategy, R&D, Marketing, Operations, HR, and Finance — multi-currency financials with live exchange rates, AI competitors, and reactive live proformas. ApexStrategy Enterprise. Thank you for watching. For the full walkthrough across every department, replay and choose the full tour."
+    say: "That's the two-minute tour. Sign-in, six integrated MBA departments — Strategy, R&D, Marketing, Operations, HR, and Finance — unified multi-currency financials with live exchange rates, AI competitors, and reactive live proformas. ApexStrategy Enterprise. Thank you for watching. For the full walkthrough across every department, replay and choose the full tour."
   }
 ]}
 ];
@@ -994,11 +1068,21 @@ const TOUR_QUICK = [
 const TOUR_FULL = [
 { ch: 'Welcome', stops: [
   { type: 'intro', t: 'Welcome to the full walkthrough',
-    say: "Welcome to ApexStrategy Enterprise — a multi-department corporate business simulation. This tour plays the real application itself. Over the next five minutes you'll see the landing page, the executive dashboard, every MBA functional department — Strategy, R&D, Marketing, Operations, HR, and Finance — the live proforma calculator, multi-currency switching, and the round-end results analytics. Let's begin on the landing page." }
+    say: "Welcome to ApexStrategy Enterprise — a multi-department corporate business simulation. This tour plays the real application itself. Over the next five minutes you'll sign in, see the landing page, the executive dashboard, every MBA functional department — Strategy, R&D, Marketing, Operations, HR, and Finance — the live proforma calculator, unified multi-currency switching, and the round-end results analytics. Let's begin at the sign-in gate." }
+]},
+{ ch: 'Sign In', stops: [
+  { sel: 'h2', t: 'Authentication gate',
+    say: "ApexStrategy opens at the sign-in screen. Authentication is fully client-side — credentials are stored in your browser's localStorage, no server, no email verification, no OAuth keys. The left panel showcases the brand and key features. The tour will fill in a demo account and submit the form for you.",
+    hl: [
+      { s: 'h1', l: 'Run Your Enterprise — Master the Market' },
+      { s: 'input[type="email"]', l: 'Email + password — local-only auth' }
+    ],
+    act: 'signIn'
+  }
 ]},
 { ch: 'Landing', stops: [
   { sel: 'h1', t: 'The landing page',
-    say: "The hero says it all: Run Your Enterprise, Master the Market. ApexStrategy is a multi-department corporate business simulation platform with reactive live proformas, multi-currency financials, AI competitors, and a sleek financial-terminal user interface. Pure browser-based strategy — no setup required.",
+    say: "After signing in, you land on the home page. The hero says it all: Run Your Enterprise, Master the Market. ApexStrategy is a multi-department corporate business simulation platform with reactive live proformas, multi-currency financials, AI competitors, and a sleek financial-terminal user interface. Pure browser-based strategy — no setup required.",
     hl: [ { s: 'h1', l: 'Run Your Enterprise — Master the Market' } ]
   },
   { sel: 'button', t: 'Launch the simulation',
@@ -1009,7 +1093,7 @@ const TOUR_FULL = [
 ]},
 { ch: 'Dashboard', stops: [
   { sel: 'h1', t: 'The executive command center',
-    say: "The dashboard is your command center. Five KPI scorecards show revenue, net profit, stock price, market share, and return on equity — each with a delta versus the previous round. The center shows round progress, and a green live indicator confirms the simulation is active.",
+    say: "The dashboard is your command center. Five KPI scorecards show revenue, net profit, stock price, market share, and return on equity — each with a delta versus the previous round. All values are in Indian Rupees by default, using Indian numbering — lakhs and crores. The center shows round progress, and a green live indicator confirms the simulation is active.",
     hl: [
       { s: 'button', l: 'KPI scorecards — 5 metrics at a glance' }
     ]
@@ -1018,8 +1102,8 @@ const TOUR_FULL = [
     say: "Below the KPIs is your full product portfolio: five products across five segments, with price, units sold, revenue, market share, inventory, and a customer attractiveness score. Everything is live — once you process a round, these numbers update instantly.",
     hl: [ { s: 'table', l: '5 products × 5 segments = 20 product lines' } ]
   },
-  { sel: 'header', t: 'Multi-currency support',
-    say: "All financials support multiple currencies. The engine math always runs in Indian Rupees — the default — but the display layer converts in real time to US Dollars, Euros, Pounds, Yen, Dirham, or Singapore Dollars. Rates are fetched live from a free public API and cached for one hour. Watch as I switch to US Dollars — every number updates instantly.",
+  { sel: 'header', t: 'Unified multi-currency support',
+    say: "All financials support multiple currencies. The engine math always runs in Indian Rupees — the default — but the display layer converts in real time to US Dollars, Euros, Pounds, Yen, Dirham, or Singapore Dollars. Every KPI, statement, chart axis, and tooltip updates together — fully unified. Rates are fetched live from a free public API and cached for one hour. Watch as I switch to US Dollars.",
     hl: [ { s: 'button', l: 'Currency switcher — live exchange rates', t: 'y' } ],
     act: 'switchCurrency'
   }
@@ -1090,15 +1174,25 @@ const TOUR_FULL = [
 ]},
 { ch: 'Results', stops: [
   { sel: 'h1', t: 'Round-end debrief',
-    say: "The Results tab is your round-end debrief. A podium leaderboard ranks all teams by stock price with delta indicators. Below that, four trend charts track stock price, net profit, revenue, and ROE across all rounds. A market-share pie and a per-segment stacked bar show where you're winning and where you're losing.",
+    say: "The Results tab is your round-end debrief. A podium leaderboard ranks all teams by stock price with delta indicators. Below that, four trend charts track stock price, net profit, revenue, and ROE across all rounds — all in your selected currency, with high-contrast tooltips. A market-share pie and a per-segment stacked bar show where you're winning and where you're losing.",
     hl: [ { s: 'h1', l: 'Round-end debrief — analytics + leaderboards' } ],
     act: 'gotoTab',
     tabName: 'Results'
   }
 ]},
+{ ch: 'Home & Account', stops: [
+  { sel: 'header', t: 'Home button & user menu',
+    say: "Two final navigation controls. The Home button at the top-left exits the current game session and returns you to the landing page — your saved games stay intact. And the circular avatar button on the right opens the user menu, where you can return home or sign out. Signing out clears your session and returns to the sign-in screen.",
+    hl: [
+      { s: 'button', l: 'Home — back to landing page' },
+      { s: 'button', l: 'Avatar — user menu (Home / Sign Out)', t: 'y' }
+    ],
+    act: 'goHome'
+  }
+]},
 { ch: 'Outro', stops: [
   { type: 'outro', t: 'One platform. Six departments. Yours.',
-    say: "That completes the full walkthrough: a landing page with one-click launch, an executive dashboard with live KPIs, six integrated MBA departments — Strategy, R&D, Marketing, Operations, HR, and Finance — multi-currency financials with live exchange rates, AI competitors, reactive live proformas on every input, and round-end analytics with leaderboards and trend charts. ApexStrategy Enterprise. Thank you for watching."
+    say: "That completes the full walkthrough: client-side authentication with no server, a landing page with one-click launch, an executive dashboard with live KPIs, six integrated MBA departments — Strategy, R&D, Marketing, Operations, HR, and Finance — unified multi-currency financials with live exchange rates, AI competitors, reactive live proformas on every input, round-end analytics with leaderboards and trend charts, and a Home button plus user menu for account management. ApexStrategy Enterprise — created and designed by Magesh Kanna S. Thank you for watching."
   }
 ]}
 ];

@@ -270,7 +270,7 @@ export function RndView() {
               <div className="grid sm:grid-cols-3 gap-4">
                 <FieldGroup
                   label="R&D Investment"
-                  hint="$000s · Drives position & MTBF improvements"
+                  hint="₹000s · Drives position & MTBF improvements"
                   icon={<Sparkles className="h-3.5 w-3.5" />}
                 >
                   <Input
@@ -287,7 +287,7 @@ export function RndView() {
                 </FieldGroup>
                 <FieldGroup
                   label="Automation Investment"
-                  hint="$000s · Lowers labor cost long-term"
+                  hint="₹000s · Lowers labor cost long-term"
                   icon={<Cpu className="h-3.5 w-3.5" />}
                 >
                   <Input
@@ -304,7 +304,7 @@ export function RndView() {
                 </FieldGroup>
                 <FieldGroup
                   label="Capacity Investment"
-                  hint="$000s · $500 adds 100 units capacity"
+                  hint="₹000s · $500 adds 100 units capacity"
                   icon={<Factory className="h-3.5 w-3.5" />}
                 >
                   <Input

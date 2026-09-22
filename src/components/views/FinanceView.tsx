@@ -145,7 +145,7 @@ export function FinanceView() {
                 Capital Decisions
               </CardTitle>
               <CardDescription className="text-xs">
-                Issue debt, raise equity, or pay dividends. All in $000s.
+                Issue debt, raise equity, or pay dividends. All in ₹000s.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -194,7 +194,7 @@ export function FinanceView() {
                 Proforma Income Statement
               </CardTitle>
               <CardDescription className="text-xs">
-                Projected for next round · all values in $000s
+                Projected for next round · all values in ₹000s
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -243,7 +243,7 @@ export function FinanceView() {
                 Proforma Balance Sheet
               </CardTitle>
               <CardDescription className="text-xs">
-                Projected position · all values in $000s
+                Projected position · all values in ₹000s
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -480,7 +480,7 @@ function FieldInput({
           onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
           className="tabular-nums"
         />
-        <span className="text-xs text-muted-foreground whitespace-nowrap">$000s</span>
+        <span className="text-xs text-muted-foreground whitespace-nowrap">₹000s</span>
       </div>
       <div className="text-[11px] text-muted-foreground leading-relaxed">{hint}</div>
     </div>

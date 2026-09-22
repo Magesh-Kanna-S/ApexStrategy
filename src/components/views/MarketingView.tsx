@@ -181,7 +181,7 @@ export function MarketingView() {
                           }
                           className="tabular-nums"
                         />
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">$000s</span>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">₹000s</span>
                       </div>
                       <Slider
                         value={[decision.promoBudget]}
@@ -223,7 +223,7 @@ export function MarketingView() {
                           }
                           className="tabular-nums"
                         />
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">$000s</span>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">₹000s</span>
                       </div>
                       <Slider
                         value={[decision.salesBudget]}

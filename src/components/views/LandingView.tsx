@@ -27,6 +27,7 @@ import {
   Crown,
 } from "lucide-react";
 import { useGame } from "@/context/GameContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,6 +43,7 @@ import {
 
 export function LandingView() {
   const { savedGames, newGame, loadGame, deleteGame } = useGame();
+  const { fmtPrice: fmtCurrencyPrice } = useCurrency();
   const [gameName, setGameName] = React.useState("Apex Q4 Strategy");
   const [maxRounds, setMaxRounds] = React.useState("8");
 
@@ -256,7 +258,7 @@ export function LandingView() {
                                   <span>
                                     {" · Stock "}
                                     <span className="tabular-nums text-foreground">
-                                      ${playerResult.metrics.stockPrice.toFixed(2)}
+                                      {fmtCurrencyPrice(playerResult.metrics.stockPrice)}
                                     </span>
                                   </span>
                                 )}

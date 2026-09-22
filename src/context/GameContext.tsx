@@ -11,7 +11,7 @@
  *   - View navigation (in-app routing without URL routes)
  *   - Team switching for spectator / instructor mode
  *
- * All money values in $000s.
+ * All money values in ₹000s.
  */
 
 import * as React from "react";
@@ -138,6 +138,7 @@ interface GameContextValue {
   // ── View navigation ─────────────────────────────
   view: ViewId;
   setView: (v: ViewId) => void;
+  goHome: () => void;
 
   // ── Saved games ─────────────────────────────────
   savedGames: GameState[];
@@ -286,6 +287,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, [state, toast]);
 
   const resetGame = React.useCallback(() => {
+    setState(null);
+    setDraftDecisions({});
+    setView("landing");
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(ACTIVE_KEY);
+    }
+  }, []);
+
+  // Go home: exit current game session and return to the landing page
+  // (keeps saved games intact, just closes the active game tab).
+  const goHome = React.useCallback(() => {
     setState(null);
     setDraftDecisions({});
     setView("landing");
@@ -443,6 +455,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     isLoaded,
     view,
     setView,
+    goHome,
     savedGames,
     newGame,
     loadGame,

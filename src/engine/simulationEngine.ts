@@ -19,7 +19,7 @@
  *  Flow, ROE, ROA, stock price = f(EPS, growth, risk).
  *  Emergency loan triggers automatically when cash<0.
  *
- *  All money values are in $000s unless noted.
+ *  All money values are in ₹000s unless noted.
  *  Author: ApexStrategy Labs
  */
 
@@ -842,7 +842,7 @@ function computeTeamRoundResult(
       id: `emergency-${team.id}-${state.currentRound + 1}`,
       severity: "critical",
       title: "Emergency Loan Triggered",
-      message: `Cash shortfall of $${emergencyLoan.toFixed(0)}K. Big Al's Emergency Loan issued at ${(EMERGENCY_LOAN_RATE * 100).toFixed(1)}% APR. Review your production schedule and finance decisions.`,
+      message: `Cash shortfall of ₹${emergencyLoan.toFixed(0)}K. Big Al's Emergency Loan issued at ${(EMERGENCY_LOAN_RATE * 100).toFixed(1)}% APR. Review your production schedule and finance decisions.`,
       teamId: team.id,
       category: "finance",
     });
@@ -958,7 +958,7 @@ function computeTeamRoundResult(
       id: `op-loss-${team.id}-${state.currentRound + 1}`,
       severity: "warning",
       title: "Operating Loss",
-      message: `Operating profit is negative ($${operatingProfit.toFixed(0)}K). Review pricing and production costs.`,
+      message: `Operating profit is negative (₹${operatingProfit.toFixed(0)}K). Review pricing and production costs.`,
       teamId: team.id,
       category: "finance",
     });
