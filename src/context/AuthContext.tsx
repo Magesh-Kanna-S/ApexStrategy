@@ -38,6 +38,7 @@ interface AuthContextValue {
   signUp: (name: string, email: string, password: string) => { ok: boolean; error?: string };
   signIn: (email: string, password: string) => { ok: boolean; error?: string };
   signOut: () => void;
+  demoSignIn: () => { ok: boolean; error?: string };
   toast: (msg: string, type?: "default" | "success" | "error" | "warning") => void;
 }
 
@@ -45,6 +46,11 @@ const AuthContext = React.createContext<AuthContextValue | undefined>(undefined)
 
 const USERS_KEY = "apexstrategy:users:v1";
 const SESSION_KEY = "apexstrategy:session:v1";
+
+// ── Default demo account credentials (for easy demonstration) ──
+export const DEMO_EMAIL = "demo@apexstrategy.com";
+export const DEMO_PASSWORD = "demo1234";
+export const DEMO_NAME = "Demo Executive";
 
 const AVATAR_COLORS = [
   "#06b6d4", "#10b981", "#f59e0b", "#a855f7",
@@ -84,6 +90,27 @@ function toPublic(u: StoredUser): User {
   return pub;
 }
 
+// Ensure the demo account exists in localStorage. Called on mount.
+function ensureDemoUser() {
+  try {
+    const users = loadUsers();
+    if (!users.some((u) => u.email === DEMO_EMAIL)) {
+      const demoUser: StoredUser = {
+        id: "user-demo-apexstrategy",
+        name: DEMO_NAME,
+        email: DEMO_EMAIL,
+        passwordHash: hash(DEMO_PASSWORD),
+        createdAt: Date.now(),
+        avatarColor: "#06b6d4",
+      };
+      users.push(demoUser);
+      saveUsers(users);
+    }
+  } catch (e) {
+    console.warn("Failed to seed demo user:", e);
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
@@ -103,8 +130,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  // Load session on mount
+  // Load session on mount + seed demo user
   React.useEffect(() => {
+    // Seed the demo account so "Demo Login" always works
+    ensureDemoUser();
     try {
       const sessionRaw = window.localStorage.getItem(SESSION_KEY);
       if (sessionRaw) {
@@ -197,12 +226,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // One-click demo login — uses the pre-seeded demo account
+  const demoSignIn = React.useCallback((): { ok: boolean; error?: string } => {
+    // Make sure the demo user exists
+    ensureDemoUser();
+    const users = loadUsers();
+    const found = users.find((u) => u.email === DEMO_EMAIL);
+    if (!found) {
+      return { ok: false, error: "Demo account not available" };
+    }
+    const pub = toPublic(found);
+    setUser(pub);
+    try {
+      window.localStorage.setItem(SESSION_KEY, JSON.stringify({ userId: pub.id }));
+    } catch (e) {
+      console.warn("Session save failed:", e);
+    }
+    return { ok: true };
+  }, []);
+
   const value: AuthContextValue = {
     user,
     isLoaded,
     signUp,
     signIn,
     signOut,
+    demoSignIn,
     toast,
   };
 

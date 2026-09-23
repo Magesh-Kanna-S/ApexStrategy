@@ -5,6 +5,10 @@
  * Interactive breakdown of segment dominance per round.
  * Renders a stacked bar chart showing each team's share
  * of each segment for the most recent round.
+ *
+ * Two variants:
+ *   - "stacked": per-segment stacked bar (team share within each segment)
+ *   - "pie": doughnut chart of total units sold across all segments
  */
 
 import * as React from "react";
@@ -27,7 +31,7 @@ interface MarketShareChartProps {
   state: GameState;
   /** Round to visualize (defaults to latest) */
   round?: number;
-  /** If "pie" renders a pie of total team share; if "stacked" renders per-segment stacked bars */
+  /** If "pie" renders a doughnut of total team share; if "stacked" renders per-segment stacked bars */
   variant?: "pie" | "stacked";
   height?: number;
 }
@@ -39,6 +43,21 @@ const SEGMENT_LABELS: Record<string, string> = {
   performance: "Performance",
   size: "Size",
 };
+
+// Label renderer props from Recharts Pie
+interface PieLabelProps {
+  x?: number;
+  y?: number;
+  cx?: number;
+  cy?: number;
+  midAngle?: number;
+  innerRadius?: number;
+  outerRadius?: number;
+  percent?: number;
+  value?: number;
+  name?: string;
+  index?: number;
+}
 
 export function MarketShareChart({
   state,
@@ -122,7 +141,7 @@ export function MarketShareChart({
     );
   }
 
-  // ── Pie variant: total team share across all segments ──
+  // ── Pie (doughnut) variant: total team share across all segments ──
   const pieData = state.teams.map((team) => {
     const tr = entry.teamResults.find((r) => r.teamId === team.id);
     const totalSold = tr?.products.reduce((s, p) => s + p.unitsSold, 0) ?? 0;
@@ -133,7 +152,35 @@ export function MarketShareChart({
     };
   });
 
-  const total = pieData.reduce((s, d) => s + d.value, 0) || 1;
+  const grandTotal = pieData.reduce((s, d) => s + d.value, 0) || 1;
+
+  // Custom label renderer — positions text at the computed x/y from Recharts
+  const renderLabel = (props: PieLabelProps) => {
+    const { x, y, name, percent, value } = props;
+    // Skip label if the slice is too small (< 3%)
+    if (!percent || percent < 0.03) return null;
+    // Skip if no units sold
+    if (!value || value === 0) return null;
+
+    const pct = (percent * 100).toFixed(1);
+    const labelX = x ?? 0;
+    const labelY = y ?? 0;
+
+    return (
+      <text
+        x={labelX}
+        y={labelY}
+        fill="rgb(243 244 246)"
+        fontSize={11}
+        fontWeight={600}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        style={{ textShadow: "0 1px 4px rgb(0 0 0 / 0.8), 0 0 8px rgb(0 0 0 / 0.6)" }}
+      >
+        {`${pct}%`}
+      </text>
+    );
+  };
 
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -144,20 +191,13 @@ export function MarketShareChart({
           nameKey="name"
           cx="50%"
           cy="50%"
-          innerRadius={60}
-          outerRadius={100}
-          paddingAngle={2}
-          label={(d: { value: number; name: string }) => (
-            <text
-              fill="rgb(243 244 246)"
-              fontSize={11}
-              fontWeight={600}
-              style={{ textShadow: "0 1px 3px rgb(0 0 0 / 0.6)" }}
-            >
-              {d.name}: {((d.value / total) * 100).toFixed(1)}%
-            </text>
-          )}
-          labelLine={{ stroke: "rgb(156 163 175)", strokeWidth: 1 }}
+          innerRadius={55}
+          outerRadius={90}
+          paddingAngle={3}
+          label={renderLabel}
+          labelLine={false}
+          isAnimationActive={true}
+          animationDuration={600}
         >
           {pieData.map((d) => (
             <Cell key={d.name} fill={d.color} stroke="var(--background)" strokeWidth={2} />
@@ -175,7 +215,23 @@ export function MarketShareChart({
           }}
           labelStyle={{ color: "rgb(156 163 175)", fontSize: 11, marginBottom: 4 }}
           itemStyle={{ color: "rgb(243 244 246)" }}
-          formatter={(value: number, name: string) => [`${value.toLocaleString()} units`, name]}
+          formatter={(value: number, name: string) => {
+            const pct = ((value / grandTotal) * 100).toFixed(1);
+            return [`${value.toLocaleString()} units (${pct}%)`, name];
+          }}
+        />
+        <Legend
+          wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+          iconType="circle"
+          formatter={(value: string) => {
+            // Find the matching pie data to show percentage alongside the name
+            const item = pieData.find((d) => d.name === value);
+            if (item && grandTotal > 0) {
+              const pct = ((item.value / grandTotal) * 100).toFixed(1);
+              return `${value} — ${pct}%`;
+            }
+            return value;
+          }}
         />
       </PieChart>
     </ResponsiveContainer>

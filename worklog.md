@@ -85,3 +85,46 @@ Stage Summary:
 - Authentication: users must sign in or sign up before reaching the landing page. Sessions persist. Home button + user avatar menu (with Sign Out) available in the game navbar.
 - Final tour HTML at /home/z/my-project/download/apex-strategy-tour-v2.html — open in Chrome/Edge with the dev server running. Choose Quick (~2 min) or Full (~5 min) tour.
 - Lint: clean. No runtime errors. All 19 tour stops verified.
+
+---
+Task ID: P4
+Agent: main (super-z)
+Task: Fix doughnut chart readings, add creator footer to login, add default demo login, ensure logout works.
+
+Work Log:
+- Fixed doughnut chart (MarketShareChart.tsx pie variant):
+  * BUG: The `label` function returned a `<text>` element without `x` and `y` attributes, causing all percentage labels to render at SVG position (0,0) — the top-left corner. Labels were invisible or stacked on top of each other.
+  * FIX: Created a proper `renderLabel` function that uses the `x`, `y`, and `percent` props from Recharts to position each label at its correct position around the doughnut. Added `textAnchor="middle"` and `dominantBaseline="middle"` for proper alignment. Added a text-shadow for readability on dark backgrounds.
+  * Added small-slice suppression: slices below 3% or with 0 units sold skip the label to prevent clutter.
+  * Updated the tooltip formatter to show both units AND percentage: "1,888 units (24.6%)".
+  * Updated the Legend formatter to show percentages alongside team names: "Bharat Apex Industries — 24.6%".
+  * Added `isAnimationActive` and `animationDuration` for smooth render.
+  * Verified: labels now correctly position at x:199-360, y:18-179 (spread around the chart center) instead of all at (0,0).
+
+- Added creator footer to AuthView (login page):
+  * Added a compact creator card below the auth form with the same style as the landing page footer: crown avatar with gradient, "CREATOR & DESIGNER" label, "Magesh Kanna S" name, LinkedIn + Portfolio buttons, and a top accent strip.
+  * Framer Motion entrance animation with delay.
+
+- Added default demo login:
+  * Added DEMO_EMAIL, DEMO_PASSWORD, DEMO_NAME constants to AuthContext (demo@apexstrategy.com / demo1234 / "Demo Executive").
+  * Added `ensureDemoUser()` function that seeds the demo account into localStorage on mount if it doesn't exist.
+  * Added `demoSignIn()` function to AuthContext — one-click login with the demo account.
+  * Updated AuthView with:
+    - "Demo Login — Skip Sign Up" button (prominent, with Sparkles icon)
+    - Demo credentials hint (click to fill the form): "demo@apexstrategy.com / demo1234"
+    - Both options let users instantly access the app without signing up
+  * The demo account is pre-seeded every time the app loads, so it always works even after clearing localStorage.
+
+- Verified logout flow:
+  * The user avatar in the navigation already had a dropdown with "Back to Home" and "Sign Out" options.
+  * Tested: clicking the avatar (shows "D" for Demo Executive) opens the dropdown, clicking "Sign Out" clears the session and returns to the login page.
+  * Users can switch accounts by signing out and signing back in with different credentials.
+
+- Also fixed: package.json db:push script was missing (sandbox dev.sh calls it). Added no-op db:push, db:generate, db:migrate, db:reset scripts so the sandbox dev server starts correctly.
+
+Stage Summary:
+- Doughnut chart labels now render at correct positions with percentages.
+- Login page has creator footer with LinkedIn + Portfolio links.
+- Demo login: one-click "Demo Login" button or fill credentials manually (demo@apexstrategy.com / demo1234).
+- Logout: user avatar dropdown → Sign Out → returns to login page.
+- Lint: clean. No runtime errors.

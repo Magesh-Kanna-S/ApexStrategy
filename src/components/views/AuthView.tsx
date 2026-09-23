@@ -5,6 +5,12 @@
  * Login / Sign-up screen. Renders the brand hero on the left
  * and the auth form on the right. Doubles as the gate before
  * reaching the landing page.
+ *
+ * Features:
+ *   - Sign in / Sign up toggle
+ *   - One-click Demo Login (pre-seeded account)
+ *   - Show / hide password
+ *   - Creator credits footer
  */
 
 import * as React from "react";
@@ -21,8 +27,12 @@ import {
   ShieldCheck,
   Eye,
   EyeOff,
+  Crown,
+  Linkedin,
+  Globe,
+  Sparkles,
 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, DEMO_EMAIL, DEMO_PASSWORD } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,7 +41,7 @@ import { Badge } from "@/components/ui/badge";
 type Mode = "signin" | "signup";
 
 export function AuthView() {
-  const { signIn, signUp, toast } = useAuth();
+  const { signIn, signUp, demoSignIn, toast } = useAuth();
   const [mode, setMode] = React.useState<Mode>("signin");
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -44,7 +54,6 @@ export function AuthView() {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    // Small delay for UX polish
     setTimeout(() => {
       const result = mode === "signin"
         ? signIn(email, password)
@@ -56,6 +65,27 @@ export function AuthView() {
         toast(mode === "signin" ? "Welcome back!" : "Account created — welcome!", "success");
       }
     }, 350);
+  };
+
+  const handleDemoLogin = () => {
+    setError(null);
+    setSubmitting(true);
+    setTimeout(() => {
+      const result = demoSignIn();
+      setSubmitting(false);
+      if (!result.ok) {
+        setError(result.error || "Demo login failed");
+      } else {
+        toast("Signed in as Demo Executive", "success");
+      }
+    }, 350);
+  };
+
+  const fillDemoCredentials = () => {
+    setMode("signin");
+    setEmail(DEMO_EMAIL);
+    setPassword(DEMO_PASSWORD);
+    setError(null);
   };
 
   const switchMode = () => {
@@ -142,8 +172,8 @@ export function AuthView() {
           </div>
         </div>
 
-        {/* ── Right: auth form ── */}
-        <div className="flex items-center justify-center p-6 sm:p-12">
+        {/* ── Right: auth form + creator footer ── */}
+        <div className="flex flex-col items-center justify-center p-6 sm:p-12 overflow-y-auto">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -275,7 +305,45 @@ export function AuthView() {
                     </Button>
                   </form>
 
-                  <div className="mt-6 pt-6 border-t border-border/40 text-center text-sm">
+                  {/* ── Demo Login divider ── */}
+                  <div className="relative my-5">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-border/40" />
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="bg-card px-3 text-muted-foreground uppercase tracking-wider">
+                        or try instantly
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Demo Login button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/10"
+                    onClick={handleDemoLogin}
+                    disabled={submitting}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Demo Login — Skip Sign Up
+                  </Button>
+
+                  {/* Demo credentials hint */}
+                  <div className="mt-3 text-center">
+                    <button
+                      type="button"
+                      onClick={fillDemoCredentials}
+                      className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Demo credentials — <span className="font-mono text-primary">{DEMO_EMAIL}</span> / <span className="font-mono text-primary">{DEMO_PASSWORD}</span>
+                      <span className="ml-1 underline">(click to fill)</span>
+                    </button>
+                  </div>
+
+                  {/* Mode switch */}
+                  <div className="mt-5 pt-5 border-t border-border/40 text-center text-sm">
                     {mode === "signin" ? (
                       <>
                         Don&apos;t have an account?{" "}
@@ -305,6 +373,58 @@ export function AuthView() {
             <p className="text-center text-[11px] text-muted-foreground mt-4">
               Credentials are stored locally in your browser — no server, no email verification.
             </p>
+
+            {/* ── Creator credits footer ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="mt-6"
+            >
+              <div className="apex-card relative overflow-hidden p-4 border-border/40">
+                {/* Accent strip */}
+                <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary via-chart-1 to-chart-4" />
+
+                <div className="flex items-center gap-3">
+                  {/* Avatar */}
+                  <div className="relative shrink-0">
+                    <div className="grid place-items-center h-11 w-11 rounded-xl bg-gradient-to-br from-primary to-chart-1 text-white shadow-lg shadow-primary/30">
+                      <Crown className="h-5 w-5" />
+                    </div>
+                  </div>
+
+                  {/* Main content */}
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-primary">
+                      Creator &amp; Designer
+                    </span>
+                    <b className="block text-base font-semibold tracking-tight mt-0.5">
+                      Magesh Kanna S
+                    </b>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      <a
+                        href="https://www.linkedin.com/in/magesh-kanna-s/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary bg-primary/10 border border-primary/30 px-2.5 py-1 rounded-md hover:bg-primary/20 hover:border-primary/50 transition-colors"
+                      >
+                        <Linkedin className="h-3 w-3" />
+                        LinkedIn
+                      </a>
+                      <a
+                        href="https://magesh-kanna-s.github.io/portfolio/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-chart-1 bg-chart-1/10 border border-chart-1/30 px-2.5 py-1 rounded-md hover:bg-chart-1/20 hover:border-chart-1/50 transition-colors"
+                      >
+                        <Globe className="h-3 w-3" />
+                        Portfolio
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>

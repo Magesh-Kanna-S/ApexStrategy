@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "db:push": "echo 'No database needed — app is fully client-side'",
+    "db:generate": "echo 'No database needed — app is fully client-side'",
+    "db:migrate": "echo 'No database needed — app is fully client-side'",
+    "db:reset": "echo 'No database needed — app is fully client-side'"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.11",
